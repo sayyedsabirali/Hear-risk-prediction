@@ -1,0 +1,7 @@
+-e .
+pandas
+dotenv
+pymongo
+ipykernel
+certifi
+from_root

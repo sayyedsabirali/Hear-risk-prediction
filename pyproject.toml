@@ -1,0 +1,13 @@
+[project]
+name = "src"
+version = "0.0.1"
+description = "An Heart Risk Predicion Model"
+authors = [{name = "Sayyed Sabir Ali", email = "sabirali969091@gmail.com"}]
+
+[tool.setuptools]
+packages = {find = {}}
+
+[tool.setuptools.dynamic]
+dependencies = {file = "requirements.txt"}
+
+

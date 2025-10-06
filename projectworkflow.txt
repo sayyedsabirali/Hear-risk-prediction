@@ -1,0 +1,185 @@
+1️⃣ Project Setup & Local Environment
+
+1. Create project template by executing template.py.
+2. Write code in setup.py and pyproject.toml to import local packages from src.
+3. Add -e . in requirements.txt to ensure local packages can be accessed outside venv without conflicts.
+4. Create a virtual environment and activate it:
+   python -m venv heart-risk
+   heart-risk\Scripts\activate
+   Add required packages to requirements.txt (including mlflow, dagshub, dvc, awscli, flask, kubernetes client, prometheus_client) and install:
+   pip install -r requirements.txt
+   Do pip list to ensure all packages are installed, including local packages.
+
+2️⃣ MongoDB Setup
+
+1. Sign up for MongoDB Atlas, create a new project and a cluster (M0 free tier).
+2. Setup DB username & password.
+3. Add network access: 0.0.0.0/0 (for global access).
+   - Copy MongoDB connection string (Python driver) and store in environment variable:
+   - MONGODB_URL="mongodb+srv://<username>:<password>...."
+   - Create notebook folder, add dataset, push to MongoDB from a notebook, verify data in MongoDB Atlas.
+
+3️⃣ Logging & Exception Handling
+1. Create a logger.py file, test it on demo.py.
+2. Create an exception.py file, test it on demo.py.
+
+4️⃣ Data Ingestion Component
+1. Define variables in constants/__init__.py.
+2. Add MongoDB connection logic in configuration/mongo_db_connections.py.
+3. Create data_access/proj1_data.py to fetch data from MongoDB, transform key-value format to DataFrame.
+4. Add DataIngestion configs and artifact classes:
+
+entity/config_entity.py → DataIngestionConfig
+
+entity/artifact_entity.py → DataIngestionArtifact
+
+Implement components/data_ingestion.py and integrate it into training_pipeline.
+
+Test full ingestion by running demo.py (ensure MONGODB_URL env variable is set).
+
+5️⃣ Data Validation & Transformation
+
+Define dataset schema in config/schema.yaml.
+
+Add helper functions in utils/main_utils.py.
+
+Implement DataValidation component like ingestion (configs, artifacts, components).
+
+Implement DataTransformation component:
+
+Add estimator.py in entity/ folder for transformers/scalers.
+
+Implement ModelTrainer component:
+
+Add model training logic and estimator class in estimator.py.
+
+6️⃣ MLFlow / Dagshub Experiment Tracking
+
+Connect project to Dagshub repository.
+
+Install and configure MLFlow (pip install mlflow dagshub) for experiment tracking.
+
+Set up tracking URI in constants/__init__.py and integrate into training pipeline.
+
+Run experiments and log metrics, parameters, models.
+
+Commit & push notebooks with experiments.
+
+7️⃣ DVC Setup & S3 Remote Storage
+
+Initialize DVC in project: dvc init
+
+Create temporary local folder local_s3.
+
+Configure DVC remote: dvc remote add -d myremote s3://<bucket-name>
+
+Configure AWS credentials in environment variables or constants/__init__.py:
+
+AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION
+
+Push data/artifacts to S3 using DVC: dvc push
+
+Track pipeline stages using dvc.yaml and parameters in params.yaml.
+
+8️⃣ Model Evaluation & Pusher
+
+Define evaluation thresholds and S3 keys in constants/__init__.py:
+
+MODEL_EVALUATION_CHANGED_THRESHOLD_SCORE = 0.02
+
+MODEL_BUCKET_NAME = "my-model-mlopsproj"
+
+MODEL_PUSHER_S3_KEY = "model-registry"
+
+Implement ModelEvaluation and ModelPusher components.
+
+Push best model to S3 bucket for deployment.
+
+9️⃣ Prediction Pipeline & Flask App
+
+Create prediction_pipeline structure.
+
+Setup app.py with REST endpoints for /predict and /train.
+
+Add static and template directories for frontend (optional).
+
+Test locally using Flask: python app.py
+
+1️⃣0️⃣ CI/CD Pipeline
+
+Create Dockerfile and .dockerignore.
+
+Setup .github/workflows/ci.yaml.
+
+Create IAM user with AdministratorAccess and configure ECR repository for Docker images.
+
+Build Docker image: docker build -t project-app:latest .
+
+Push image to ECR: docker push <aws_account_id>.dkr.ecr.<region>.amazonaws.com/project-app:latest
+
+Configure self-hosted GitHub runner on EC2 (Ubuntu).
+
+Setup Github Secrets:
+AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_DEFAULT_REGION, ECR_REPO
+
+CI/CD triggers automatically on push.
+
+1️⃣1️⃣ EC2 Deployment
+
+Launch Ubuntu EC2 instance, install Docker.
+
+Run container on EC2:
+docker run -p 5000:5000 project-app:latest
+
+Allow inbound traffic for port 5000 via Security Group.
+
+Access app via public IP: http://<ec2-ip>:5000
+
+1️⃣2️⃣ Kubernetes (EKS) Deployment
+
+Install kubectl and eksctl.
+
+Create EKS cluster:
+
+eksctl create cluster --name project-cluster --region us-east-1 --nodegroup-name project-nodes --node-type t3.small --nodes 1 --nodes-min 1 --nodes-max 1 --managed
+
+Update kubeconfig:
+aws eks --region us-east-1 update-kubeconfig --name project-cluster
+
+Create deployment.yaml and service.yaml for Flask app.
+
+Apply deployment: kubectl apply -f deployment.yaml
+
+Verify pods & service: kubectl get pods, kubectl get svc
+
+Access app via LoadBalancer external IP.
+
+1️⃣3️⃣ Monitoring (Prometheus + Grafana)
+Prometheus
+
+Launch Ubuntu EC2 instance for Prometheus.
+
+Download and configure Prometheus, set scrape target to Flask app external IP.
+
+Run Prometheus:
+/usr/local/bin/prometheus --config.file=/etc/prometheus/prometheus.yml
+
+Verify Prometheus UI at port 9090.
+
+Grafana
+
+Launch Ubuntu EC2 instance for Grafana.
+
+Install Grafana, start service.
+
+Open Grafana UI at port 3000.
+
+Add Prometheus as data source.
+
+Build dashboards to monitor Flask app metrics.
+
+1️⃣4️⃣ AWS Resource Cleanup (Optional)
+
+Delete EKS cluster, deployments, services, S3/ECR resources if not needed.
+
+Validate using AWS CLI and console.
