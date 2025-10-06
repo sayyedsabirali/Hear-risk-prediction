@@ -28,30 +28,20 @@
 2. Add MongoDB connection logic in configuration/mongo_db_connections.py.
 3. Create data_access/proj1_data.py to fetch data from MongoDB, transform key-value format to DataFrame.
 4. Add DataIngestion configs and artifact classes:
-
-entity/config_entity.py → DataIngestionConfig
-
-entity/artifact_entity.py → DataIngestionArtifact
-
-Implement components/data_ingestion.py and integrate it into training_pipeline.
-
-Test full ingestion by running demo.py (ensure MONGODB_URL env variable is set).
+   entity/config_entity.py → DataIngestionConfig
+   entity/artifact_entity.py → DataIngestionArtifact
+   Implement components/data_ingestion.py and integrate it into training_pipeline.Test full ingestion by running demo.py (ensure MONGODB_URL env variable is set).
 
 5️⃣ Data Validation & Transformation
 
-Define dataset schema in config/schema.yaml.
+1. Define dataset schema in config/schema.yaml.
+2. Add helper functions in utils/main_utils.py.
+3. Implement DataValidation component like ingestion (configs, artifacts, components).
 
-Add helper functions in utils/main_utils.py.
-
-Implement DataValidation component like ingestion (configs, artifacts, components).
-
-Implement DataTransformation component:
-
-Add estimator.py in entity/ folder for transformers/scalers.
-
-Implement ModelTrainer component:
-
-Add model training logic and estimator class in estimator.py.
+6-->  Implement DataTransformation component:
+1. Add estimator.py in entity/ folder for transformers/scalers.
+2. Implement ModelTrainer component:
+3. Add model training logic and estimator class in estimator.py.
 
 6️⃣ MLFlow / Dagshub Experiment Tracking
 

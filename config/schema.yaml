@@ -1,0 +1,52 @@
+columns:
+  - _id: object
+  - heart_flag: int
+  - creatinine_max: float
+  - glucose_max: float
+  - ast_max: float
+  - alt_max: float
+  - HR_max: float
+  - NBPs_max: float
+  - NBPd_max: float
+  - NBPm_max: float
+  - gender: category
+  - anchor_age: int
+  - anchor_year_group: category
+  - race: category
+  - marital_status: category
+  - admission_type: category
+  - insurance: category
+
+numerical_columns:
+  - creatinine_max
+  - glucose_max
+  - ast_max
+  - alt_max
+  - HR_max
+  - NBPs_max
+  - NBPd_max
+  - NBPm_max
+  - anchor_age
+
+categorical_columns:
+  - gender
+  - anchor_year_group
+  - race
+  - marital_status
+  - admission_type
+  - insurance
+
+drop_columns:
+  - _id
+
+# for data transformation
+mm_columns:
+  - creatinine_max
+  - glucose_max
+  - ast_max
+  - alt_max
+  - HR_max
+  - NBPs_max
+  - NBPd_max
+  - NBPm_max
+  - anchor_age

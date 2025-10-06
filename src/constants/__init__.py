@@ -9,7 +9,7 @@ DATABASE_NAME = "heart"
 COLLECTION_NAME = "heart-Data"
 password =  os.getenv("MONGO_PASS")
 user = os.getenv("MONGO_USER_NAME")
-MONGODB_URL_KEY = "mongodb+srv://{user}:{password}@heart.nxypxj4.mongodb.net/?retryWrites=true&w=majority&appName=heart"
+MONGODB_URL_KEY = f"mongodb+srv://sayyed-sabir-ali:{password}@heart.nxypxj4.mongodb.net/?retryWrites=true&w=majority&appName=heart"
 
 PIPELINE_NAME: str = ""
 ARTIFACT_DIR: str = "artifact"

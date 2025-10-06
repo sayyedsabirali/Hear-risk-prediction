@@ -1,3 +1,4 @@
+artifact
 config
 heart-risk-pred
 logs

@@ -1,2 +1,0 @@
-[ 2025-10-06 06:26:06,734 ] root - INFO - division by zero
-[ 2025-10-06 06:26:06,734 ] root - ERROR - Error occurred in python script: [f:\18. MAJOR PROJECT\Hear-risk-prediction\notebook\demo.py] at line number [14]: division by zero
