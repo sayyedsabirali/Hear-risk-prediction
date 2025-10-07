@@ -8,3 +8,6 @@ from_root
 scikit-learn
 dill 
 PyYAML
+seaborn
+matplotlib
+imblearn
