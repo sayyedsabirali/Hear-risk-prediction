@@ -32,34 +32,6 @@ class DataIngestion:
         except Exception as e:
             raise MyException(e,sys)
 
-    # def export_data_into_feature_store(self) -> DataFrame:
-    #     """
-    #     Export data from MongoDB → DataFrame → (Optional) take sample for testing → save as CSV
-    #     """
-    #     try:
-    #         logging.info(f" Exporting data from MongoDB...")
-    #         my_data = heartData()
-    #         dataframe = my_data.export_collection_as_dataframe(
-    #             collection_name=self.data_ingestion_config.collection_name
-    #         )
-    #         logging.info(f"Shape of original dataframe: {dataframe.shape}")
-
-    #         # Limit rows to 1000 for testing
-    #         if len(dataframe) > 1000:
-    #             dataframe = dataframe.sample(n=1000, random_state=42).reset_index(drop=True)
-    #             logging.info(f"Using only 1000 rows for quick testing.")
-
-    #         # Save to feature store
-    #         feature_store_file_path = self.data_ingestion_config.feature_store_file_path
-    #         dir_path = os.path.dirname(feature_store_file_path)
-    #         os.makedirs(dir_path, exist_ok=True)
-    #         logging.info(f"Saving exported data to: {feature_store_file_path}")
-    #         dataframe.to_csv(feature_store_file_path, index=False, header=True)
-    #         return dataframe
-
-    #     except Exception as e:
-    #         raise MyException(e, sys)
-
 
 
     def split_data_as_train_test(self,dataframe: DataFrame) ->None:

@@ -3,7 +3,6 @@ import sys
 import os
 
 import pandas as pd
-
 from pandas import DataFrame
 
 from src.exception import MyException
@@ -20,7 +19,7 @@ class DataValidation:
         try:
             self.data_ingestion_artifact = data_ingestion_artifact
             self.data_validation_config = data_validation_config
-            self._schema_config =read_yaml_file(file_path=SCHEMA_FILE_PATH)
+            self._schema_config = read_yaml_file(file_path=SCHEMA_FILE_PATH)
         except Exception as e:
             raise MyException(e,sys)
 
@@ -37,22 +36,24 @@ class DataValidation:
             dataframe_columns = df.columns
             missing_numerical_columns = []
             missing_categorical_columns = []
+            
+            # Check numerical columns
             for column in self._schema_config["numerical_columns"]:
                 if column not in dataframe_columns:
                     missing_numerical_columns.append(column)
 
-            if len(missing_numerical_columns)>0:
+            if len(missing_numerical_columns) > 0:
                 logging.info(f"Missing numerical column: {missing_numerical_columns}")
 
-
+            # Check categorical columns
             for column in self._schema_config["categorical_columns"]:
                 if column not in dataframe_columns:
                     missing_categorical_columns.append(column)
 
-            if len(missing_categorical_columns)>0:
+            if len(missing_categorical_columns) > 0:
                 logging.info(f"Missing categorical column: {missing_categorical_columns}")
 
-            return False if len(missing_categorical_columns)>0 or len(missing_numerical_columns)>0 else True
+            return False if len(missing_categorical_columns) > 0 or len(missing_numerical_columns) > 0 else True
         except Exception as e:
             raise MyException(e, sys) from e
 
@@ -69,10 +70,11 @@ class DataValidation:
         try:
             validation_error_msg = ""
             logging.info("Starting data validation")
+            
             train_df, test_df = (DataValidation.read_data(file_path=self.data_ingestion_artifact.trained_file_path),
                                  DataValidation.read_data(file_path=self.data_ingestion_artifact.test_file_path))
 
-            # Checking col len of dataframe for train/test df
+            # Checking column length of dataframe for train/test df
             status = self.validate_number_of_columns(dataframe=train_df)
             if not status:
                 validation_error_msg += f"Columns are missing in training dataframe. "
@@ -85,7 +87,7 @@ class DataValidation:
             else:
                 logging.info(f"All required columns present in testing dataframe: {status}")
 
-            # Validating col dtype for train/test df
+            # Validating column existence for train/test df
             status = self.is_column_exist(df=train_df)
             if not status:
                 validation_error_msg += f"Columns are missing in training dataframe. "

@@ -45,15 +45,11 @@
 
 6️⃣ MLFlow / Dagshub Experiment Tracking
 
-Connect project to Dagshub repository.
-
-Install and configure MLFlow (pip install mlflow dagshub) for experiment tracking.
-
-Set up tracking URI in constants/__init__.py and integrate into training pipeline.
-
-Run experiments and log metrics, parameters, models.
-
-Commit & push notebooks with experiments.
+1.Connect project to Dagshub repository.
+2. Install and configure MLFlow (pip install mlflow dagshub) for experiment tracking.
+3. Set up tracking URI in constants/__init__.py and integrate into training pipeline.
+4. Run experiments and log metrics, parameters, models.
+5. Commit & push notebooks with experiments.
 
 7️⃣ DVC Setup & S3 Remote Storage
 

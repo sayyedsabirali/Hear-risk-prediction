@@ -11,3 +11,4 @@ PyYAML
 seaborn
 matplotlib
 imblearn
+mlflow
