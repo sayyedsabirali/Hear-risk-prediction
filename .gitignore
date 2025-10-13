@@ -210,3 +210,6 @@ artifact
 logs
 heart-risk-pred
 .env
+mlruns
+AI_Health_Model_Results.pdf
+AI_Health_Model_Report_Full.pdf
