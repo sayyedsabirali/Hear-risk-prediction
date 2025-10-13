@@ -39,16 +39,23 @@ class DataTransformationConfig:
     transformed_object_file_path: str = os.path.join(data_transformation_dir,
                                                      DATA_TRANSFORMATION_TRANSFORMED_OBJECT_DIR,
                                                      PREPROCSSING_OBJECT_FILE_NAME)
-    
+
 @dataclass
 class ModelTrainerConfig:
     model_trainer_dir: str = os.path.join(training_pipeline_config.artifact_dir, MODEL_TRAINER_DIR_NAME)
     trained_model_file_path: str = os.path.join(model_trainer_dir, MODEL_TRAINER_TRAINED_MODEL_DIR, MODEL_FILE_NAME)
     expected_accuracy: float = MODEL_TRAINER_EXPECTED_SCORE
     model_config_file_path: str = MODEL_TRAINER_MODEL_CONFIG_FILE_PATH
-    _n_estimators = MODEL_TRAINER_N_ESTIMATORS
-    _min_samples_split = MODEL_TRAINER_MIN_SAMPLES_SPLIT
-    _min_samples_leaf = MODEL_TRAINER_MIN_SAMPLES_LEAF
-    _max_depth = MIN_SAMPLES_SPLIT_MAX_DEPTH
-    _criterion = MIN_SAMPLES_SPLIT_CRITERION
-    _random_state = MIN_SAMPLES_SPLIT_RANDOM_STATE
+    
+    # ✅ LightGBM Parameters (MLflow Best)
+    n_estimators: int = MODEL_TRAINER_N_ESTIMATORS
+    max_depth: int = MODEL_TRAINER_MAX_DEPTH
+    learning_rate: float = MODEL_TRAINER_LEARNING_RATE
+    num_leaves: int = MODEL_TRAINER_NUM_LEAVES
+    subsample: float = MODEL_TRAINER_SUBSAMPLE
+    colsample_bytree: float = MODEL_TRAINER_COLSAMPLE_BYTREE
+    reg_alpha: float = MODEL_TRAINER_REG_ALPHA
+    reg_lambda: float = MODEL_TRAINER_REG_LAMBDA
+    min_child_samples: int = MODEL_TRAINER_MIN_CHILD_SAMPLES
+    random_state: int = MODEL_TRAINER_RANDOM_STATE
+    verbose: int = MODEL_TRAINER_VERBOSE

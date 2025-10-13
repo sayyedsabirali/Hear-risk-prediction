@@ -27,7 +27,7 @@ if __name__ == "__main__":
     )
 
     # 3️⃣ Data Transformation
-    data_transformation_artifact = pipeline.start_data_transformation(
+    data_transformation_artifact = pipeline.start_data_transformation( 
         data_ingestion_artifact=data_ingestion_artifact,
         data_validation_artifact=data_validation_artifact
     )

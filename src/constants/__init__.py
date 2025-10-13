@@ -48,8 +48,10 @@ Data Validation realted contant start with DATA_VALIDATION VAR NAME
 DATA_VALIDATION_DIR_NAME: str = "data_validation"
 DATA_VALIDATION_REPORT_FILE_NAME: str = "report.yaml"
 
+# constants/__init__.py
+
 """
-Data Transformation ralated constant start with DATA_TRANSFORMATION VAR NAME
+Data Transformation related constant start with DATA_TRANSFORMATION VAR NAME
 """
 DATA_TRANSFORMATION_DIR_NAME: str = "data_transformation"
 DATA_TRANSFORMATION_TRANSFORMED_DATA_DIR: str = "transformed"
@@ -61,14 +63,26 @@ MODEL TRAINER related constant start with MODEL_TRAINER var name
 MODEL_TRAINER_DIR_NAME: str = "model_trainer"
 MODEL_TRAINER_TRAINED_MODEL_DIR: str = "trained_model"
 MODEL_TRAINER_TRAINED_MODEL_NAME: str = "model.pkl"
-MODEL_TRAINER_EXPECTED_SCORE: float = 0.6
+MODEL_TRAINER_EXPECTED_SCORE: float = 0.90
 MODEL_TRAINER_MODEL_CONFIG_FILE_PATH: str = os.path.join("config", "model.yaml")
-MODEL_TRAINER_N_ESTIMATORS=200
-MODEL_TRAINER_MIN_SAMPLES_SPLIT: int = 7
-MODEL_TRAINER_MIN_SAMPLES_LEAF: int = 6
-MIN_SAMPLES_SPLIT_MAX_DEPTH: int = 10
-MIN_SAMPLES_SPLIT_CRITERION: str = 'entropy'
-MIN_SAMPLES_SPLIT_RANDOM_STATE: int = 101
+# ✅ MLflow Best Model Parameters 
+MODEL_TRAINER_MODEL_TYPE: str = "LightGBM"
+MODEL_TRAINER_N_ESTIMATORS: int = 2000
+MODEL_TRAINER_MAX_DEPTH: int = 12
+MODEL_TRAINER_LEARNING_RATE: float = 0.02
+MODEL_TRAINER_NUM_LEAVES: int = 64
+MODEL_TRAINER_SUBSAMPLE: float = 0.8
+MODEL_TRAINER_COLSAMPLE_BYTREE: float = 0.8
+MODEL_TRAINER_REG_ALPHA: float = 0.1
+MODEL_TRAINER_REG_LAMBDA: float = 0.1
+MODEL_TRAINER_MIN_CHILD_SAMPLES: int = 20
+MODEL_TRAINER_RANDOM_STATE: int = 42
+MODEL_TRAINER_VERBOSE = -1
+
+# Feature Engineering Constants
+FEATURE_SELECTION_COUNT: int = 30
+TARGET_COLUMN: str = "heart_attack"
+
 
 """
 MODEL Evaluation related constants

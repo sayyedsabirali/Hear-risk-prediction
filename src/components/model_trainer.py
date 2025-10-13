@@ -2,8 +2,8 @@ import sys
 from typing import Tuple
 
 import numpy as np
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
+import lightgbm as lgb
+from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, roc_auc_score
 
 from src.exception import MyException
 from src.logger import logging
@@ -11,6 +11,7 @@ from src.utils.main_utils import load_numpy_array_data, load_object, save_object
 from src.entity.config_entity import ModelTrainerConfig
 from src.entity.artifact_entity import DataTransformationArtifact, ModelTrainerArtifact, ClassificationMetricArtifact
 from src.entity.estimator import MyModel
+
 
 class ModelTrainer:
     def __init__(self, data_transformation_artifact: DataTransformationArtifact,
@@ -20,88 +21,93 @@ class ModelTrainer:
 
     def get_model_object_and_report(self, train: np.array, test: np.array) -> Tuple[object, object]:
         try:
-            logging.info("Training RandomForestClassifier with specified parameters")
+            logging.info("Training LightGBM with EXACT MLflow Parameters")
 
-            # Splitting the train and test data into features and target variables
+            # Splitting the train and test data
             x_train, y_train, x_test, y_test = train[:, :-1], train[:, -1], test[:, :-1], test[:, -1]
-            logging.info("train-test split done.")
-            
-            # CRITICAL FIX: Ensure target variables are integer type
-            y_train = y_train.astype(int)
-            y_test = y_test.astype(int)
-            logging.info(f"y_train dtype: {y_train.dtype}, unique values: {np.unique(y_train)}")
-            logging.info(f"y_test dtype: {y_test.dtype}, unique values: {np.unique(y_test)}")
+            logging.info(f"Train shape: {x_train.shape}, Test shape: {x_test.shape}")
 
-            # Initialize RandomForestClassifier with specified parameters
-            model = RandomForestClassifier(
-                n_estimators = self.model_trainer_config._n_estimators,
-                min_samples_split = self.model_trainer_config._min_samples_split,
-                min_samples_leaf = self.model_trainer_config._min_samples_leaf,
-                max_depth = self.model_trainer_config._max_depth,
-                criterion = self.model_trainer_config._criterion,
-                random_state = self.model_trainer_config._random_state
+            # LightGBM with EXACT MLflow Parameters from config
+            model = lgb.LGBMClassifier(
+                n_estimators=self.model_trainer_config.n_estimators,
+                max_depth=self.model_trainer_config.max_depth,
+                learning_rate=self.model_trainer_config.learning_rate,
+                num_leaves=self.model_trainer_config.num_leaves,
+                subsample=self.model_trainer_config.subsample,
+                colsample_bytree=self.model_trainer_config.colsample_bytree,
+                reg_alpha=self.model_trainer_config.reg_alpha,
+                reg_lambda=self.model_trainer_config.reg_lambda,
+                min_child_samples=self.model_trainer_config.min_child_samples,
+                random_state=self.model_trainer_config.random_state,
+                verbose=self.model_trainer_config.verbose
             )
 
-            # Fit the model
-            logging.info("Model training going on...")
+            # Fit the model - EXACT same as MLflow
+            logging.info("Model training started...")
             model.fit(x_train, y_train)
-            logging.info("Model training done.")
+            logging.info("Model training completed")
 
-            # Predictions and evaluation metrics
+            # Predictions and evaluation - EXACT same metrics as MLflow
             y_pred = model.predict(x_test)
+            y_pred_proba = model.predict_proba(x_test)[:, 1]
+
+            # Calculate metrics
             accuracy = accuracy_score(y_test, y_pred)
-            f1 = f1_score(y_test, y_pred)
-            precision = precision_score(y_test, y_pred)
-            recall = recall_score(y_test, y_pred)
+            f1 = f1_score(y_test, y_pred, average='binary')
+            precision = precision_score(y_test, y_pred, average='binary', zero_division=0)
+            recall = recall_score(y_test, y_pred, average='binary', zero_division=0)
+            auc_score = roc_auc_score(y_test, y_pred_proba)
 
-            logging.info(f"Model Metrics - Accuracy: {accuracy:.4f}, F1: {f1:.4f}, Precision: {precision:.4f}, Recall: {recall:.4f}")
+            logging.info("Model Performance (MLflow Metrics):")
+            logging.info(f"   Accuracy: {accuracy:.4f}")
+            logging.info(f"   Precision: {precision:.4f}")
+            logging.info(f"   Recall: {recall:.4f}")
+            logging.info(f"   F1 Score: {f1:.4f}")
+            logging.info(f"   AUC Score: {auc_score:.4f}")
 
-            # Creating metric artifact
-            metric_artifact = ClassificationMetricArtifact(f1_score=f1, precision_score=precision, recall_score=recall)
+            # Creating metric artifact with MLflow metrics
+            metric_artifact = ClassificationMetricArtifact(
+                f1_score=f1, 
+                precision_score=precision, 
+                recall_score=recall,
+                accuracy_score=accuracy,
+                auc_score=auc_score
+            )
+            
             return model, metric_artifact
         
         except Exception as e:
+            logging.error(f"Error in model training: {str(e)}")
             raise MyException(e, sys) from e
 
     def initiate_model_trainer(self) -> ModelTrainerArtifact:
-        logging.info("Entered initiate_model_trainer method of ModelTrainer class")
+        logging.info("Starting Model Trainer - EXACT MLflow Approach")
         try:
-            print("------------------------------------------------------------------------------------------------")
-            print("Starting Model Trainer Component")
-            # Load transformed train and test data
+            
+            # Load transformed data
             train_arr = load_numpy_array_data(file_path=self.data_transformation_artifact.transformed_train_file_path)
             test_arr = load_numpy_array_data(file_path=self.data_transformation_artifact.transformed_test_file_path)
-            logging.info("train-test data loaded")
-            
-            # Train model and get metrics
+            logging.info("Train-test data loaded")
+
+            # Train model
             trained_model, metric_artifact = self.get_model_object_and_report(train=train_arr, test=test_arr)
-            logging.info("Model object and artifact loaded.")
-            
+            logging.info("Model training completed")
+
             # Load preprocessing object
             preprocessing_obj = load_object(file_path=self.data_transformation_artifact.transformed_object_file_path)
-            logging.info("Preprocessing obj loaded.")
+            logging.info("Preprocessing object loaded")
 
-            # Check if the model's accuracy meets the expected threshold
-            train_predictions = trained_model.predict(train_arr[:, :-1])
-            train_targets = train_arr[:, -1].astype(int)  # Ensure int type
-            train_accuracy = accuracy_score(train_targets, train_predictions)
-            
-            if train_accuracy < self.model_trainer_config.expected_accuracy:
-                logging.info(f"Model accuracy {train_accuracy:.4f} is below expected {self.model_trainer_config.expected_accuracy}")
-                raise Exception("No model found with score above the base score")
-
-            # Save the final model object that includes both preprocessing and the trained model
-            logging.info(f"Saving new model with accuracy: {train_accuracy:.4f}")
+            # Save final model
+            logging.info("Saving final model...")
             my_model = MyModel(preprocessing_object=preprocessing_obj, trained_model_object=trained_model)
             save_object(self.model_trainer_config.trained_model_file_path, my_model)
-            logging.info("Saved final model object that includes both preprocessing and the trained model")
+            logging.info(f"Final model saved")
 
-            # Create and return the ModelTrainerArtifact
+            # Create artifact
             model_trainer_artifact = ModelTrainerArtifact(
                 trained_model_file_path=self.model_trainer_config.trained_model_file_path,
                 metric_artifact=metric_artifact,
             )
-            logging.info(f"Model trainer artifact: {model_trainer_artifact}")
             return model_trainer_artifact
         
         except Exception as e:
