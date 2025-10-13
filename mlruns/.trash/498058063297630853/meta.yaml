@@ -1,0 +1,8 @@
+artifact_location: file:///F:/18. MAJOR PROJECT/Hear-risk-prediction/mlruns/498058063297630853
+creation_time: 1760113481447
+experiment_id: '498058063297630853'
+last_update_time: 1760236074490
+lifecycle_stage: deleted
+name: boxplot_preprocessing_comparison
+tags:
+  mlflow.experimentKind: custom_model_development

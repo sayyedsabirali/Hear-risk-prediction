@@ -1,17 +1,14 @@
 import pandas as pd
 from dataclasses import dataclass
 from typing import Dict, List, Any
+from src.constants import *
 
-@dataclass
-class DataConfig:
-    SAMPLE_SIZE: int = 1000
-    DATA_PATH: str = r"F:\18. MAJOR PROJECT\Data\DATA_FOR_HEART_RISK_PRED.csv"
-    TARGET_COLUMN: str = "heart_flag"
-    NUMERICAL_COLUMNS: List[str] = None
-    CATEGORICAL_COLUMNS: List[str] = None
-    
-    def __post_init__(self):
-        if self.NUMERICAL_COLUMNS is None:
-            self.NUMERICAL_COLUMNS = []
-        if self.CATEGORICAL_COLUMNS is None:
-            self.CATEGORICAL_COLUMNS = []
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+DATA_PATH = Path_of_data
+TARGET_COL = TARGET_COLUMN
+TEST_SIZE = DATA_INGESTION_TRAIN_TEST_SPLIT_RATIO
+RANDOM_STATE = 42

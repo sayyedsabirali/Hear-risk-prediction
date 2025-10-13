@@ -12,8 +12,6 @@
 #     logger.info(e)
 #     raise MyException(e,sys)
 
-
-
 # Check the data transformation code 
 from src.pipline.training_pipeline import TrainPipeline
 

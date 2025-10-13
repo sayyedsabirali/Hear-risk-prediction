@@ -1,6 +1,7 @@
-artifact
 config
+data
 heart-risk-pred
-logs
+mlflow_experiments
+mlruns
 notebook
 src

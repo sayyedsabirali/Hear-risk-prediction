@@ -1,0 +1,15 @@
+artifact_uri: file:///F:/18. MAJOR PROJECT/Hear-risk-prediction/mlruns/393687016730951608/632bec97b73f41b1bb7826fbf55519b2/artifacts
+deleted_time: 1760237860323
+end_time: 1760237489210
+entry_point_name: ''
+experiment_id: '393687016730951608'
+lifecycle_stage: deleted
+run_id: 632bec97b73f41b1bb7826fbf55519b2
+run_name: combo_005_xgboost
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1760237486462
+status: 3
+tags: []
+user_id: Asus

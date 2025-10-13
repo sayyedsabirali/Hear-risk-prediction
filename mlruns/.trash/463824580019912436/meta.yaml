@@ -1,0 +1,8 @@
+artifact_location: file:///F:/18. MAJOR PROJECT/Hear-risk-prediction/mlruns/463824580019912436
+creation_time: 1760277856693
+experiment_id: '463824580019912436'
+last_update_time: 1760349249728
+lifecycle_stage: deleted
+name: 7. FEATURE_ENGG_FIXED_20251012_1934
+tags:
+  mlflow.experimentKind: custom_model_development

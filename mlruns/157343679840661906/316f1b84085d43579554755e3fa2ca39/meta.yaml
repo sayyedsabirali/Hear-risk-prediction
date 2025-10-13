@@ -1,0 +1,14 @@
+artifact_uri: file:///F:/18. MAJOR PROJECT/Hear-risk-prediction/mlruns/157343679840661906/316f1b84085d43579554755e3fa2ca39/artifacts
+end_time: 1760123674626
+entry_point_name: ''
+experiment_id: '157343679840661906'
+lifecycle_stage: active
+run_id: 316f1b84085d43579554755e3fa2ca39
+run_name: combo_138_logistic_regression
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1760123673843
+status: 3
+tags: []
+user_id: Asus

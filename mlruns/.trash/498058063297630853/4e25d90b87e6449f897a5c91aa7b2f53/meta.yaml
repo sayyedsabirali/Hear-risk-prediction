@@ -1,0 +1,15 @@
+artifact_uri: file:///F:/18. MAJOR PROJECT/Hear-risk-prediction/mlruns/498058063297630853/4e25d90b87e6449f897a5c91aa7b2f53/artifacts
+deleted_time: 1760236074490
+end_time: 1760113564958
+entry_point_name: ''
+experiment_id: '498058063297630853'
+lifecycle_stage: deleted
+run_id: 4e25d90b87e6449f897a5c91aa7b2f53
+run_name: boxplot_remove_medium_logistic_regression
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1760113562301
+status: 3
+tags: []
+user_id: Asus

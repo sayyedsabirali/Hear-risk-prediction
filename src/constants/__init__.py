@@ -13,6 +13,7 @@ MONGODB_URL_KEY = f"mongodb+srv://{user}:{password}@heart.xfuzvm4.mongodb.net/?r
 
 PIPELINE_NAME: str = ""
 ARTIFACT_DIR: str = "artifact"
+Path_of_data= "F:\\18. MAJOR PROJECT\\Data Handling\\heart_risk_complete_dataset.csv"
 
 MODEL_FILE_NAME = "model.pkl"
 

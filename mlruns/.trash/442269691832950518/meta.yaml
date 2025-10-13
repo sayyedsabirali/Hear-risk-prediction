@@ -1,0 +1,8 @@
+artifact_location: file:///F:/18. MAJOR PROJECT/Hear-risk-prediction/mlruns/442269691832950518
+creation_time: 1760244691229
+experiment_id: '442269691832950518'
+last_update_time: 1760251254641
+lifecycle_stage: deleted
+name: 4. OPTIMIZED_CATBOOST_20251012_1021
+tags:
+  mlflow.experimentKind: custom_model_development

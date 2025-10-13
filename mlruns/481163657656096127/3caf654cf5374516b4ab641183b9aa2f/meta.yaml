@@ -1,0 +1,14 @@
+artifact_uri: file:///F:/18. MAJOR PROJECT/Hear-risk-prediction/mlruns/481163657656096127/3caf654cf5374516b4ab641183b9aa2f/artifacts
+end_time: 1760240855586
+entry_point_name: ''
+experiment_id: '481163657656096127'
+lifecycle_stage: active
+run_id: 3caf654cf5374516b4ab641183b9aa2f
+run_name: combo_002_catboost
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1760240848326
+status: 3
+tags: []
+user_id: Asus

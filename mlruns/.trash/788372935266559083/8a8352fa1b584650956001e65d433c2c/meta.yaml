@@ -1,0 +1,15 @@
+artifact_uri: file:///F:/18. MAJOR PROJECT/Hear-risk-prediction/mlruns/788372935266559083/8a8352fa1b584650956001e65d433c2c/artifacts
+deleted_time: 1760240750195
+end_time: 1760239168796
+entry_point_name: ''
+experiment_id: '788372935266559083'
+lifecycle_stage: deleted
+run_id: 8a8352fa1b584650956001e65d433c2c
+run_name: combo_044_naive_bayes
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1760239166962
+status: 3
+tags: []
+user_id: Asus
