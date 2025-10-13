@@ -53,19 +53,13 @@
 
 7️⃣ DVC Setup & S3 Remote Storage
 
-Initialize DVC in project: dvc init
-
-Create temporary local folder local_s3.
-
-Configure DVC remote: dvc remote add -d myremote s3://<bucket-name>
-
-Configure AWS credentials in environment variables or constants/__init__.py:
-
-AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION
-
-Push data/artifacts to S3 using DVC: dvc push
-
-Track pipeline stages using dvc.yaml and parameters in params.yaml.
+1. Initialize DVC in project: dvc init
+2. Create temporary local folder local_s3.
+3. Configure DVC remote: dvc remote add -d myremote s3://<bucket-name>
+4. Configure AWS credentials in environment variables or constants/__init__.py:
+5. AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION
+6. Push data/artifacts to S3 using DVC: dvc push
+7. Track pipeline stages using dvc.yaml and parameters in params.yaml.
 
 8️⃣ Model Evaluation & Pusher
 
