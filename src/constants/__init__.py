@@ -28,8 +28,8 @@ TEST_FILE_NAME: str = "test.csv"
 SCHEMA_FILE_PATH = os.path.join("config", "schema.yaml")
 
 
-AWS_ACCESS_KEY_ID_ENV_KEY = os.getenv("AWS_ACCESS_KEY_ID")
-AWS_SECRET_ACCESS_KEY_ENV_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
+AWS_ACCESS_KEY_ID_ENV_KEY = os.getenv("AWS_KEY")
+AWS_SECRET_ACCESS_KEY_ENV_KEY = os.getenv("AWS_PASSWORD")
 REGION_NAME = "us-east-1"
 
 
@@ -47,8 +47,6 @@ Data Validation realted contant start with DATA_VALIDATION VAR NAME
 """
 DATA_VALIDATION_DIR_NAME: str = "data_validation"
 DATA_VALIDATION_REPORT_FILE_NAME: str = "report.yaml"
-
-# constants/__init__.py
 
 """
 Data Transformation related constant start with DATA_TRANSFORMATION VAR NAME
@@ -81,14 +79,13 @@ MODEL_TRAINER_VERBOSE = -1
 
 # Feature Engineering Constants
 FEATURE_SELECTION_COUNT: int = 30
-TARGET_COLUMN: str = "heart_attack"
 
 
 """
 MODEL Evaluation related constants
 """
 MODEL_EVALUATION_CHANGED_THRESHOLD_SCORE: float = 0.02
-MODEL_BUCKET_NAME = "vehicle-sabir"
+MODEL_BUCKET_NAME = "sabir-project"
 MODEL_PUSHER_S3_KEY = "model-registry"
 
 

@@ -38,7 +38,7 @@
 2. Add helper functions in utils/main_utils.py.
 3. Implement DataValidation component like ingestion (configs, artifacts, components).
 
-6-->  Implement DataTransformation component:
+6>  Implement DataTransformation component:
 1. Add estimator.py in entity/ folder for transformers/scalers.
 2. Implement ModelTrainer component:
 3. Add model training logic and estimator class in estimator.py.
