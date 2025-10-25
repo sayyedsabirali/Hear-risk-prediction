@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heart Risk Prediction System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .section-title {
+            color: #667eea;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 30px 0 20px 0;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .btn-container {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-predict {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-predict:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-predict:active {
+            transform: translateY(0);
+        }
+
+        .btn-reset {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-reset:hover {
+            background: #5a6268;
+        }
+
+        .result-container {
+            margin-top: 30px;
+            padding: 30px;
+            border-radius: 15px;
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .result-high-risk {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+        }
+
+        .result-low-risk {
+            background: linear-gradient(135deg, #51cf66 0%, #37b24d 100%);
+            color: white;
+        }
+
+        .result-container h2 {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .result-container p {
+            font-size: 1.2rem;
+            text-align: center;
+            opacity: 0.95;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .error-message {
+            background: #ff6b6b;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+            animation: shake 0.5s ease-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .info-badge {
+            display: inline-block;
+            background: #e7f3ff;
+            color: #0066cc;
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-size: 0.85rem;
+            margin-left: 8px;
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .btn-container {
+                flex-direction: column;
+            }
+        }
+
+        .example-btn {
+            background: #17a2b8;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .example-btn:hover {
+            background: #138496;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>❤️ Heart Risk Prediction System</h1>
+            <p>Advanced AI-Powered Cardiac Risk Assessment</p>
+        </div>
+
+        <div class="card">
+            <button class="example-btn" onclick="fillExampleData()">📋 Load Example Patient Data</button>
+            
+            <form id="predictionForm">
+                <!-- Demographic Information -->
+                <div class="section-title">👤 Demographic Information</div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="gender">Gender</label>
+                        <select id="gender" name="gender" required>
+                            <option value="">Select Gender</option>
+                            <option value="M">Male</option>
+                            <option value="F">Female</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="anchor_age">Age <span class="info-badge">Years</span></label>
+                        <input type="number" id="anchor_age" name="anchor_age" min="18" max="120" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="race">Race</label>
+                        <select id="race" name="race" required>
+                            <option value="">Select Race</option>
+                            <option value="WHITE">White</option>
+                            <option value="BLACK">Black</option>
+                            <option value="ASIAN">Asian</option>
+                            <option value="HISPANIC">Hispanic</option>
+                            <option value="OTHER">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="marital_status">Marital Status</label>
+                        <select id="marital_status" name="marital_status" required>
+                            <option value="">Select Status</option>
+                            <option value="SINGLE">Single</option>
+                            <option value="MARRIED">Married</option>
+                            <option value="DIVORCED">Divorced</option>
+                            <option value="WIDOWED">Widowed</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Clinical Information -->
+                <div class="section-title">🏥 Clinical Information</div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="admission_type">Admission Type</label>
+                        <select id="admission_type" name="admission_type" required>
+                            <option value="">Select Type</option>
+                            <option value="EMERGENCY">Emergency</option>
+                            <option value="URGENT">Urgent</option>
+                            <option value="ELECTIVE">Elective</option>
+                            <option value="OBSERVATION ADMIT">Observation Admit</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="insurance">Insurance</label>
+                        <select id="insurance" name="insurance" required>
+                            <option value="">Select Insurance</option>
+                            <option value="Medicare">Medicare</option>
+                            <option value="Medicaid">Medicaid</option>
+                            <option value="Private">Private</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Cardiac Biomarkers -->
+                <div class="section-title">💉 Cardiac Biomarkers</div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="troponin_t">Troponin T <span class="info-badge">ng/mL</span></label>
+                        <input type="number" step="0.001" id="troponin_t" name="troponin_t" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="creatine_kinase_mb">Creatine Kinase MB <span class="info-badge">ng/mL</span></label>
+                        <input type="number" step="0.1" id="creatine_kinase_mb" name="creatine_kinase_mb" required>
+                    </div>
+                </div>
+
+                <!-- Blood Chemistry -->
+                <div class="section-title">🔬 Blood Chemistry</div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="creatinine">Creatinine <span class="info-badge">mg/dL</span></label>
+                        <input type="number" step="0.01" id="creatinine" name="creatinine" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="glucose">Glucose <span class="info-badge">mg/dL</span></label>
+                        <input type="number" step="0.1" id="glucose" name="glucose" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="sodium">Sodium <span class="info-badge">mEq/L</span></label>
+                        <input type="number" step="0.1" id="sodium" name="sodium" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="potassium">Potassium <span class="info-badge">mEq/L</span></label>
+                        <input type="number" step="0.01" id="potassium" name="potassium" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="hemoglobin">Hemoglobin <span class="info-badge">g/dL</span></label>
+                        <input type="number" step="0.1" id="hemoglobin" name="hemoglobin" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="white_blood_cells">White Blood Cells <span class="info-badge">K/uL</span></label>
+                        <input type="number" step="0.01" id="white_blood_cells" name="white_blood_cells" required>
+                    </div>
+                </div>
+
+                <!-- Vital Signs -->
+                <div class="section-title">📊 Vital Signs</div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="heart_rate">Heart Rate <span class="info-badge">bpm</span></label>
+                        <input type="number" step="0.1" id="heart_rate" name="heart_rate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="bp_systolic">Blood Pressure (Systolic) <span class="info-badge">mmHg</span></label>
+                        <input type="number" step="0.1" id="bp_systolic" name="bp_systolic" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="bp_diastolic">Blood Pressure (Diastolic) <span class="info-badge">mmHg</span></label>
+                        <input type="number" step="0.1" id="bp_diastolic" name="bp_diastolic" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="spo2">SpO2 <span class="info-badge">%</span></label>
+                        <input type="number" step="0.1" id="spo2" name="spo2" min="0" max="100" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="respiratory_rate">Respiratory Rate <span class="info-badge">/min</span></label>
+                        <input type="number" step="0.1" id="respiratory_rate" name="respiratory_rate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="temperature">Temperature <span class="info-badge">°F</span></label>
+                        <input type="number" step="0.1" id="temperature" name="temperature" required>
+                    </div>
+                </div>
+
+                <div class="btn-container">
+                    <button type="submit" class="btn btn-predict">🔍 Predict Risk</button>
+                    <button type="reset" class="btn btn-reset">🔄 Reset Form</button>
+                </div>
+            </form>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Analyzing patient data...</p>
+            </div>
+
+            <div class="error-message" id="errorMessage"></div>
+
+            <div class="result-container" id="resultContainer">
+                <h2 id="resultTitle"></h2>
+                <p id="resultMessage"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000/predict';
+
+        function fillExampleData() {
+            document.getElementById('gender').value = 'M';
+            document.getElementById('anchor_age').value = '86';
+            document.getElementById('race').value = 'WHITE';
+            document.getElementById('marital_status').value = 'SINGLE';
+            document.getElementById('admission_type').value = 'URGENT';
+            document.getElementById('insurance').value = 'Medicare';
+            document.getElementById('troponin_t').value = '1.007';
+            document.getElementById('creatine_kinase_mb').value = '13.0';
+            document.getElementById('creatinine').value = '1.516';
+            document.getElementById('glucose').value = '122.166';
+            document.getElementById('sodium').value = '141.666';
+            document.getElementById('potassium').value = '4.016';
+            document.getElementById('hemoglobin').value = '8.2';
+            document.getElementById('white_blood_cells').value = '5.15';
+            document.getElementById('heart_rate').value = '73';
+            document.getElementById('bp_systolic').value = '142';
+            document.getElementById('bp_diastolic').value = '83';
+            document.getElementById('spo2').value = '98';
+            document.getElementById('respiratory_rate').value = '20';
+            document.getElementById('temperature').value = '98';
+        }
+
+        document.getElementById('predictionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const loading = document.getElementById('loading');
+            const resultContainer = document.getElementById('resultContainer');
+            const errorMessage = document.getElementById('errorMessage');
+            
+            // Hide previous results
+            resultContainer.style.display = 'none';
+            errorMessage.style.display = 'none';
+            loading.style.display = 'block';
+            
+            const formData = new FormData(e.target);
+            const data = {};
+            
+            formData.forEach((value, key) => {
+                // Convert numeric fields to numbers
+                if (['anchor_age', 'creatinine', 'glucose', 'sodium', 'potassium', 
+                     'troponin_t', 'creatine_kinase_mb', 'hemoglobin', 'white_blood_cells',
+                     'heart_rate', 'bp_systolic', 'bp_diastolic', 'spo2', 
+                     'respiratory_rate', 'temperature'].includes(key)) {
+                    data[key] = parseFloat(value);
+                } else {
+                    data[key] = value;
+                }
+            });
+            
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                loading.style.display = 'none';
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Prediction failed');
+                }
+                
+                const result = await response.json();
+                
+                // Display result
+                resultContainer.style.display = 'block';
+                
+                if (result.risk_status === 'HIGH RISK') {
+                    resultContainer.className = 'result-container result-high-risk';
+                    document.getElementById('resultTitle').textContent = '⚠️ High Risk Detected';
+                    document.getElementById('resultMessage').textContent = result.prediction + '. Please consult with a healthcare professional immediately.';
+                } else {
+                    resultContainer.className = 'result-container result-low-risk';
+                    document.getElementById('resultTitle').textContent = '✅ Low Risk';
+                    document.getElementById('resultMessage').textContent = result.prediction + '. Continue with regular health check-ups.';
+                }
+                
+            } catch (error) {
+                loading.style.display = 'none';
+                errorMessage.style.display = 'block';
+                errorMessage.textContent = '❌ Error: ' + error.message;
+            }
+        });
+
+        // Reset button handler
+        document.querySelector('.btn-reset').addEventListener('click', () => {
+            document.getElementById('resultContainer').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+        });
+    </script>
+</body>
+</html>

@@ -24,6 +24,13 @@ class PreprocessingUtils:
             def safe_sqrt(x):
                 return np.sqrt(np.where(x < 0, 0, x))
             
+            def safe_divide(numerator, denominator, default=0.0):
+                """Safe division that handles zero denominator and returns default"""
+                result = np.where(denominator == 0, default, numerator / denominator)
+                # Replace inf and -inf with default
+                result = np.where(np.isinf(result), default, result)
+                return result
+            
             # 1. CARDIAC-SPECIFIC FEATURES
             logging.info("   Creating cardiac-specific features...")
             if all(col in df_eng.columns for col in ['troponin_t', 'creatine_kinase_mb']):
@@ -39,7 +46,7 @@ class PreprocessingUtils:
                 df_eng['mean_arterial_pressure'] = (df_eng['bp_systolic'] + 2 * df_eng['bp_diastolic']) / 3
                 df_eng['pulse_pressure'] = df_eng['bp_systolic'] - df_eng['bp_diastolic']
                 df_eng['rate_pressure_product'] = df_eng['heart_rate'] * df_eng['bp_systolic'] / 100
-                df_eng['shock_index'] = df_eng['heart_rate'] / df_eng['bp_systolic']
+                df_eng['shock_index'] = safe_divide(df_eng['heart_rate'], df_eng['bp_systolic'], default=0.0)
                 df_eng['hemodynamic_instability'] = (
                     (df_eng['bp_systolic'] < 90) | 
                     (df_eng['heart_rate'] > 120) | 
@@ -54,7 +61,7 @@ class PreprocessingUtils:
                 df_eng['respiratory_distress'] = (
                     (df_eng['spo2'] < 92) | (df_eng['respiratory_rate'] > 24)
                 ).astype(int)
-                df_eng['ventilation_perfusion_ratio'] = df_eng['respiratory_rate'] / (df_eng['spo2'] + 0.1)
+                df_eng['ventilation_perfusion_ratio'] = safe_divide(df_eng['respiratory_rate'], df_eng['spo2'], default=0.0)
             
             # 4. METABOLIC AND RENAL FEATURES
             logging.info("   Creating metabolic features...")
@@ -66,7 +73,7 @@ class PreprocessingUtils:
                 ).astype(int)
                 df_eng['hyperglycemia'] = (df_eng['glucose'] > 180).astype(int)
                 df_eng['hypoglycemia'] = (df_eng['glucose'] < 70).astype(int)
-                df_eng['bun_creatinine_ratio'] = df_eng['glucose'] / (df_eng['creatinine'] + 0.1)
+                df_eng['bun_creatinine_ratio'] = safe_divide(df_eng['glucose'], df_eng['creatinine'], default=0.0)
             
             # 5. INFLAMMATORY AND HEMATOLOGICAL FEATURES
             logging.info("   Creating inflammatory features...")
@@ -91,7 +98,7 @@ class PreprocessingUtils:
                 
                 if 'heart_rate' in df_eng.columns:
                     df_eng['age_adjusted_hr_max'] = 220 - df_eng['anchor_age']
-                    df_eng['hr_percentage_max'] = df_eng['heart_rate'] / df_eng['age_adjusted_hr_max']
+                    df_eng['hr_percentage_max'] = safe_divide(df_eng['heart_rate'], df_eng['age_adjusted_hr_max'], default=0.0)
             
             # 7. VITAL SIGN INTERACTIONS
             logging.info("   Creating vital sign interactions...")
@@ -100,7 +107,7 @@ class PreprocessingUtils:
             
             if len(available_vitals) >= 2:
                 df_eng['vital_sign_mean'] = df_eng[available_vitals].mean(axis=1)
-                df_eng['vital_sign_std'] = df_eng[available_vitals].std(axis=1)
+                df_eng['vital_sign_std'] = df_eng[available_vitals].std(axis=1).fillna(0)
                 df_eng['vital_sign_range'] = df_eng[available_vitals].max(axis=1) - df_eng[available_vitals].min(axis=1)
                 
                 df_eng['ews_score'] = 0
@@ -138,13 +145,18 @@ class PreprocessingUtils:
             # 10. RATIO FEATURES
             logging.info("   Creating ratio features...")
             if all(col in df_eng.columns for col in ['hemoglobin', 'white_blood_cells']):
-                df_eng['hgb_wbc_ratio'] = df_eng['hemoglobin'] / (df_eng['white_blood_cells'] + 0.1)
+                df_eng['hgb_wbc_ratio'] = safe_divide(df_eng['hemoglobin'], df_eng['white_blood_cells'], default=0.0)
             
             if all(col in df_eng.columns for col in ['heart_rate', 'respiratory_rate']):
-                df_eng['hr_rr_ratio'] = df_eng['heart_rate'] / (df_eng['respiratory_rate'] + 0.1)
+                df_eng['hr_rr_ratio'] = safe_divide(df_eng['heart_rate'], df_eng['respiratory_rate'], default=0.0)
             
             if all(col in df_eng.columns for col in ['spo2', 'respiratory_rate']):
-                df_eng['spo2_rr_ratio'] = df_eng['spo2'] / (df_eng['respiratory_rate'] + 0.1)
+                df_eng['spo2_rr_ratio'] = safe_divide(df_eng['spo2'], df_eng['respiratory_rate'], default=0.0)
+            
+            # FINAL CHECK: Replace any remaining inf/nan values
+            logging.info("   Final check: Replacing any remaining inf/nan values...")
+            df_eng = df_eng.replace([np.inf, -np.inf], np.nan)
+            df_eng = df_eng.fillna(0)
             
             new_features = len(df_eng.columns) - original_features
             logging.info(f"Advanced feature engineering completed: {new_features} new features")
@@ -182,6 +194,11 @@ class PreprocessingUtils:
             # Step 6: Ensure all columns are numerical
             df_processed = PreprocessingUtils._ensure_numeric_columns(df_processed)
             
+            # Step 7: Final safety check - replace inf/nan
+            logging.info("Final safety check: Replacing any inf/nan values...")
+            df_processed = df_processed.replace([np.inf, -np.inf], np.nan)
+            df_processed = df_processed.fillna(0)
+            
             return df_processed
             
         except Exception as e:
@@ -203,7 +220,9 @@ class PreprocessingUtils:
         """Map gender to binary"""
         logging.info("Mapping 'gender' column to binary values")
         if 'gender' in df.columns:
-            df['gender'] = df['gender'].map({'F': 0, 'M': 1}).astype(int)
+            df['gender'] = df['gender'].map({'F': 0, 'M': 1})
+            # Handle any unmapped values
+            df['gender'] = df['gender'].fillna(1).astype(int)
         return df
 
     @staticmethod
@@ -220,12 +239,39 @@ class PreprocessingUtils:
     def _create_dummy_columns(df: pd.DataFrame) -> pd.DataFrame:
         """Create dummy variables for categorical features"""
         logging.info("Creating dummy variables for categorical features")
-        low_cardinality = ['admission_type']
-        for col in low_cardinality:
-            if col in df.columns:
-                dummies = pd.get_dummies(df[col], prefix=col, drop_first=True)
-                df = pd.concat([df, dummies], axis=1)
-                df = df.drop(columns=[col])
+        
+        # Define all possible categories for admission_type (from training data)
+        admission_type_categories = [
+            'AMBULATORY OBSERVATION',
+            'DIRECT EMER.',
+            'DIRECT OBSERVATION', 
+            'ELECTIVE',
+            'EU OBSERVATION',
+            'EW EMER.',
+            'OBSERVATION ADMIT',
+            'SURGICAL SAME DAY ADMISSION',
+            'URGENT'
+        ]
+        
+        if 'admission_type' in df.columns:
+            # Create dummies for all categories
+            dummies = pd.get_dummies(df['admission_type'], prefix='admission_type')
+            
+            # Ensure all expected columns exist
+            for category in admission_type_categories:
+                col_name = f'admission_type_{category}'
+                if col_name not in dummies.columns:
+                    dummies[col_name] = 0
+            
+            # Drop first column (to match training behavior with drop_first=True)
+            # Typically 'admission_type_AMBULATORY OBSERVATION' is dropped
+            if 'admission_type_AMBULATORY OBSERVATION' in dummies.columns:
+                dummies = dummies.drop(columns=['admission_type_AMBULATORY OBSERVATION'])
+            
+            # Concat and drop original column
+            df = pd.concat([df, dummies], axis=1)
+            df = df.drop(columns=['admission_type'])
+            
         return df
 
     @staticmethod
@@ -238,7 +284,7 @@ class PreprocessingUtils:
         for col in categorical_cols:
             if col in df.columns and df[col].isna().any():
                 mode_val = df[col].mode()
-                fill_value = mode_val[0] if len(mode_val) > 0 else 'Unknown'
+                fill_value = mode_val[0] if len(mode_val) > 0 else 0
                 df[col] = df[col].fillna(fill_value)
         
         # Fill numerical columns with median
@@ -246,6 +292,9 @@ class PreprocessingUtils:
         for col in numerical_cols:
             if df[col].isna().any():
                 median_value = df[col].median()
+                # If median is nan or inf, use 0
+                if pd.isna(median_value) or np.isinf(median_value):
+                    median_value = 0
                 df[col] = df[col].fillna(median_value)
         
         return df
