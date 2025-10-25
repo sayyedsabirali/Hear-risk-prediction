@@ -16,3 +16,4 @@ lightgbm
 boto3
 mypy_boto3_s3
 dvc
+dvc[s3]

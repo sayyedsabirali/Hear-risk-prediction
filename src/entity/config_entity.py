@@ -59,3 +59,14 @@ class ModelTrainerConfig:
     min_child_samples: int = MODEL_TRAINER_MIN_CHILD_SAMPLES
     random_state: int = MODEL_TRAINER_RANDOM_STATE
     verbose: int = MODEL_TRAINER_VERBOSE
+
+@dataclass
+class ModelEvaluationConfig:
+    changed_threshold_score: float = MODEL_EVALUATION_CHANGED_THRESHOLD_SCORE
+    bucket_name: str = MODEL_BUCKET_NAME
+    s3_model_key_path: str = MODEL_FILE_NAME
+
+@dataclass
+class ModelPusherConfig:
+    bucket_name: str = MODEL_BUCKET_NAME
+    s3_model_key_path: str = MODEL_FILE_NAME

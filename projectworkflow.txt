@@ -1,4 +1,4 @@
-1️⃣ Project Setup & Local Environment
+1. Project Setup & Local Environment
 
 1. Create project template by executing template.py.
 2. Write code in setup.py and pyproject.toml to import local packages from src.
@@ -10,7 +10,7 @@
    pip install -r requirements.txt
    Do pip list to ensure all packages are installed, including local packages.
 
-2️⃣ MongoDB Setup
+2. MongoDB Setup
 
 1. Sign up for MongoDB Atlas, create a new project and a cluster (M0 free tier).
 2. Setup DB username & password.
@@ -19,11 +19,15 @@
    - MONGODB_URL="mongodb+srv://<username>:<password>...."
    - Create notebook folder, add dataset, push to MongoDB from a notebook, verify data in MongoDB Atlas.
 
-3️⃣ Logging & Exception Handling
+
+3. Logging & Exception Handling
+
 1. Create a logger.py file, test it on demo.py.
 2. Create an exception.py file, test it on demo.py.
 
-4️⃣ Data Ingestion Component
+
+4. Data Ingestion Component
+
 1. Define variables in constants/__init__.py.
 2. Add MongoDB connection logic in configuration/mongo_db_connections.py.
 3. Create data_access/proj1_data.py to fetch data from MongoDB, transform key-value format to DataFrame.
@@ -32,18 +36,22 @@
    entity/artifact_entity.py → DataIngestionArtifact
    Implement components/data_ingestion.py and integrate it into training_pipeline.Test full ingestion by running demo.py (ensure MONGODB_URL env variable is set).
 
-5️⃣ Data Validation & Transformation
+
+5. Data Validation & Transformation
 
 1. Define dataset schema in config/schema.yaml.
 2. Add helper functions in utils/main_utils.py.
 3. Implement DataValidation component like ingestion (configs, artifacts, components).
 
-6>  Implement DataTransformation component:
+
+6  Implement DataTransformation component:
+
 1. Add estimator.py in entity/ folder for transformers/scalers.
 2. Implement ModelTrainer component:
 3. Add model training logic and estimator class in estimator.py.
 
-6️⃣ MLFlow / Dagshub Experiment Tracking
+
+7. MLFlow / Dagshub Experiment Tracking
 
 1.Connect project to Dagshub repository.
 2. Install and configure MLFlow (pip install mlflow dagshub) for experiment tracking.
@@ -51,9 +59,12 @@
 4. Run experiments and log metrics, parameters, models.
 5. Commit & push notebooks with experiments.
 
-7️⃣ DVC Setup & S3 Remote Storage
+
+8. DVC Setup & S3 Remote Storage
 
 1. Initialize DVC in project: dvc init
+2. git add . commit 
+3. dvc remote add -d myremote s3://sabir-project/dvcstore
 2. Create temporary local folder local_s3.
 3. Configure DVC remote: dvc remote add -d myremote s3://<bucket-name>
 4. Configure AWS credentials in environment variables or constants/__init__.py:
@@ -61,19 +72,17 @@
 6. Push data/artifacts to S3 using DVC: dvc push
 7. Track pipeline stages using dvc.yaml and parameters in params.yaml.
 
-8️⃣ Model Evaluation & Pusher
 
-Define evaluation thresholds and S3 keys in constants/__init__.py:
+8. Model Evaluation & Pusher
 
-MODEL_EVALUATION_CHANGED_THRESHOLD_SCORE = 0.02
-
-MODEL_BUCKET_NAME = "my-model-mlopsproj"
-
-MODEL_PUSHER_S3_KEY = "model-registry"
-
+1. Define evaluation thresholds and S3 keys in constants/__init__.py:
+2. MODEL_EVALUATION_CHANGED_THRESHOLD_SCORE = 0.02
+3. MODEL_BUCKET_NAME = "my-model-mlopsproj"
+4. MODEL_PUSHER_S3_KEY = "model-registry"
 Implement ModelEvaluation and ModelPusher components.
-
 Push best model to S3 bucket for deployment.
+
+
 
 9️⃣ Prediction Pipeline & Flask App
 

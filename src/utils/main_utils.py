@@ -1,6 +1,6 @@
 import os
 import sys
-
+import pickle
 import numpy as np
 import dill
 import yaml
@@ -31,14 +31,6 @@ def write_yaml_file(file_path: str, content: object, replace: bool = False) -> N
         raise MyException(e, sys) from e
 
 
-def load_object(file_path: str) -> object:
-    try:
-        with open(file_path, "rb") as file_obj:
-            obj = dill.load(file_obj)
-        return obj
-    except Exception as e:
-        raise MyException(e, sys) from e
-
 def save_numpy_array_data(file_path: str, array: np.array):
     try:
         dir_path = os.path.dirname(file_path)
@@ -58,14 +50,22 @@ def load_numpy_array_data(file_path: str) -> np.array:
 
 
 def save_object(file_path: str, obj: object) -> None:
-    logging.info("Entered the save_object method of utils")
-
+    """
+    Save object using pickle with proper error handling
+    """
     try:
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
         with open(file_path, "wb") as file_obj:
-            dill.dump(obj, file_obj)
+            pickle.dump(obj, file_obj)  # Use pickle instead of dill
+    except Exception as e:
+        raise MyException(e, sys) from e
 
-        logging.info("Exited the save_object method of utils")
-
+def load_object(file_path: str) -> object:
+    """
+    Load object using pickle with proper error handling
+    """
+    try:
+        with open(file_path, "rb") as file_obj:
+            return pickle.load(file_obj)  # Use pickle instead of dill
     except Exception as e:
         raise MyException(e, sys) from e
