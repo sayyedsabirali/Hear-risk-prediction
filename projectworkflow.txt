@@ -73,7 +73,7 @@
 7. Track pipeline stages using dvc.yaml and parameters in params.yaml.
 
 
-8. Model Evaluation & Pusher
+9. Model Evaluation & Pusher
 
 1. Define evaluation thresholds and S3 keys in constants/__init__.py:
 2. MODEL_EVALUATION_CHANGED_THRESHOLD_SCORE = 0.02
@@ -84,29 +84,21 @@ Push best model to S3 bucket for deployment.
 
 
 
-9️⃣ Prediction Pipeline & Flask App
+10. Prediction Pipeline & Fastapi App
 
-Create prediction_pipeline structure.
+1. Create prediction_pipeline structure.
+2. Setup app.py with REST endpoints for /predict and /train.
+3. Add static and template directories for frontend.
+Test locally using Fastapi: python app.py
 
-Setup app.py with REST endpoints for /predict and /train.
+11. CI/CD Pipeline
 
-Add static and template directories for frontend (optional).
-
-Test locally using Flask: python app.py
-
-1️⃣0️⃣ CI/CD Pipeline
-
-Create Dockerfile and .dockerignore.
-
-Setup .github/workflows/ci.yaml.
-
-Create IAM user with AdministratorAccess and configure ECR repository for Docker images.
-
-Build Docker image: docker build -t project-app:latest .
-
-Push image to ECR: docker push <aws_account_id>.dkr.ecr.<region>.amazonaws.com/project-app:latest
-
-Configure self-hosted GitHub runner on EC2 (Ubuntu).
+1. Create Dockerfile and .dockerignore.
+2. Setup .github/workflows/ci.yaml.
+3. Create IAM user with AdministratorAccess and configure ECR repository for Docker images.
+4. Build Docker image: docker build -t project-app:latest .
+5. Push image to ECR: docker push <aws_account_id>.dkr.ecr.<region>.amazonaws.com/project-app:latest
+6. Configure self-hosted GitHub runner on EC2 (Ubuntu).
 
 Setup Github Secrets:
 AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_DEFAULT_REGION, ECR_REPO

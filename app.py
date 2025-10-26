@@ -130,12 +130,6 @@ async def health_check():
 
 @app.post("/predict", response_model=PredictionResponse)
 async def predict(patient_request: HeartPatientRequest):
-    """
-    Predict heart disease risk for a patient
-    
-    Returns:
-        PredictionResponse with prediction result
-    """
     try:
         logging.info("Received prediction request")
         logging.info(f"Patient data: Age={patient_request.anchor_age}, Gender={patient_request.gender}")

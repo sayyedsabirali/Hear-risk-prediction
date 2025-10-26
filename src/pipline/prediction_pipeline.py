@@ -104,12 +104,6 @@ class HeartRiskClassifier:
 
     def predict(self, dataframe: pd.DataFrame) -> str:
         try:
-            logging.info("Entered predict method of HeartRiskClassifier class")
-            logging.info("Applying medical feature engineering...")
-            processed_data = PreprocessingUtils.apply_complete_feature_engineering(dataframe)
-            logging.info("Applying preprocessing transformations...")
-            processed_data = PreprocessingUtils.apply_preprocessing_transformations(processed_data)
-            
             # Load model from S3
             model = Proj1Estimator(
                 bucket_name=self.prediction_pipeline_config.bucket_name,
@@ -117,7 +111,7 @@ class HeartRiskClassifier:
             )
             
             # Make prediction
-            result = model.predict(processed_data)
+            result = model.predict(dataframe)
             
             # Convert prediction to meaningful result
             prediction_label = "Patient has heart risk" if result[0] == 1 else "Patient has no heart risk"

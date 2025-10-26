@@ -32,32 +32,14 @@ class MyModel:
         self.trained_model_object = trained_model_object
 
     def predict(self, dataframe: pd.DataFrame) -> DataFrame:
-        """
-        Make predictions on input dataframe
-        Uses PreprocessingUtils for consistent feature engineering and preprocessing
-        
-        Args:
-            dataframe: Raw input data with original features
-            
-        Returns:
-            Array of predictions
-        """
         try:
             logging.info("Starting prediction process with raw data...")
-            
-            # STEP 1: Apply feature engineering using PreprocessingUtils
             logging.info("Step 1: Applying complete feature engineering...")
             df_processed = PreprocessingUtils.apply_complete_feature_engineering(dataframe)
-            
-            # STEP 2: Apply preprocessing transformations using PreprocessingUtils
             logging.info("Step 2: Applying preprocessing transformations...")
             df_processed = PreprocessingUtils.apply_preprocessing_transformations(df_processed)
-            
-            # STEP 3: Apply scaling transformations (from saved preprocessing pipeline)
             logging.info("Step 3: Applying scaling transformations...")
             transformed_feature = self.preprocessing_object.transform(df_processed)
-            
-            # STEP 4: Make predictions with trained model
             logging.info("Step 4: Making predictions...")
             predictions = self.trained_model_object.predict(transformed_feature)
             
