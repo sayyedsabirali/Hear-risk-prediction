@@ -1,0 +1,15 @@
+__pycache__
+artifact
+heart-risk-pred
+.env
+logs
+mlflow_experiments
+mlruns
+.gitignore
+logs
+template.py
+demo.py
+README.md
+LICENSE
+src.egg.-info
+notebook
