@@ -93,17 +93,49 @@ Test locally using Fastapi: python app.py
 
 11. CI/CD Pipeline
 
-1. Create Dockerfile and .dockerignore.
-2. Setup .github/workflows/ci.yaml.
-3. Create IAM user with AdministratorAccess and configure ECR repository for Docker images.
-4. Build Docker image: docker build -t project-app:latest .
-5. Push image to ECR: docker push <aws_account_id>.dkr.ecr.<region>.amazonaws.com/project-app:latest
-6. Configure self-hosted GitHub runner on EC2 (Ubuntu).
+Getting started with CI-CD process:
 
-Setup Github Secrets:
-AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_DEFAULT_REGION, ECR_REPO
+      * Setup the dockerfile and .dockerignore file
+      * Setup the .github\workflows dir and aws.yaml file within
+      * Go to AWS console and create a new IAM user exactly the way we did earlier (name: "usvisa-user") >>
+        Go inside user >> Security Credentials >> Access Keys >> create access key >> CLI >> check agreement
+        >> next >> create access key >> download csv
+      * Now create one ECR repo to store/save docker image:
+        AWS console >> Go to ECR >> Region: us-east-1 >> Hit create repository >>
+        repo name: vehicleproj >> hit create repository >> copy and keep uri
+      * Now create EC2 Ubuntu server >> AWS console >> EC2 >> Launch Instance >> name: vehicledata-machine
+        >> Image: Ubuntu >> AMI: Ubuntu Server 24.04 (free tier) >> Instance: T2 Medium (~chargeable-3.5rs/hr)
+        >> create new key pair (name: proj1key) >> allow for https and http traffic >> storage: 30gb >> Launch
+        >> Go to instance >> click on "Connect" >> Connect using EC2 Instance Connect 
+        >> Connect (Terminal will be launched)
 
-CI/CD triggers automatically on push.
+Open EC2 and Install docker in EC2 Machine:
+
+      ## Optinal
+      sudo apt-get update -y
+      sudo apt-get upgrade
+      ## Required (Because Docker is'nt there in our EC2 server - [docker --version])
+      curl -fsSL https://get.docker.com -o get-docker.sh
+      sudo sh get-docker.sh
+      sudo usermod -aG docker ubuntu
+      newgrp docker
+
+Next step is to connect Github with EC2(Self hosted runner):
+      * select your project on Github >> go to settings >> Actions >> Runner >> New self hosted runner
+        >> Select OS (Linux) >> Now step by step run all "Download" related commands on EC2 server 
+        >> run first "Configure" command (hit enter instead of setting a runner group, runner name: self-hosted)
+        >> enter any additional label (hit enter to skip) >> name of work folder (again hit enter)
+        >> Now run second "Configure" command (./run.sh) and runner will get connected to Github
+        >> To crosscheck, go back to Github and click on Runner and you will see runner state as "idle"
+        >> If you do ctrl+c on EC2 server then runner will shut then restart with "./run.sh"
+
+Setup your Github secrets: (Github project>Settings>SecretandVariable>Actions>NewRepoSecret)
+      AWS_ACCESS_KEY_ID
+      AWS_SECRET_ACCESS_KEY
+      AWS_DEFAULT_REGION
+      ECR_REPO
+
+CI-CD pipeline will be triggered at next commit and push.
 
 1️⃣1️⃣ EC2 Deployment
 

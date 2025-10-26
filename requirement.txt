@@ -1,0 +1,21 @@
+-e .
+pandas
+dotenv
+pymongo
+ipykernel
+certifi
+from_root
+scikit-learn
+dill 
+PyYAML
+seaborn
+matplotlib
+mlflow
+catboost
+lightgbm
+boto3
+mypy_boto3_s3
+dvc
+dvc[s3]
+fastapi
+uvicorn
