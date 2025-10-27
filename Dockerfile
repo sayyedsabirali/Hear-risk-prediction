@@ -1,7 +1,8 @@
-FROM python:3.10-slim-buster
+# ✅ ALTERNATIVE OPTION:
+FROM python:3.9-slim
+
 WORKDIR /app
 
-# ✅ YEH EK LINE ADD KARO
 RUN apt-get update && apt-get install -y libgomp1
 
 COPY . /app
