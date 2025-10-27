@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 import uvicorn
 import pandas as pd
-from src.logger import logging
+from src.logger import logging 
 from src.exception import MyException
 from src.pipline.prediction_pipeline import HeartPatientData, HeartRiskClassifier
 from fastapi.responses import FileResponse
