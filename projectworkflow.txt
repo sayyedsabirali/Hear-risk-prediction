@@ -145,7 +145,7 @@ Run container on EC2:
 docker run -p 5000:5000 project-app:latest
 
 Allow inbound traffic for port 5000 via Security Group.
-
+ 
 Access app via public IP: http://<ec2-ip>:5000
 
 1️⃣2️⃣ Kubernetes (EKS) Deployment
