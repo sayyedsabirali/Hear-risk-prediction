@@ -78,6 +78,13 @@
             background: #f8f9fa;
         }
 
+        .form-group input::placeholder,
+        .form-group select::placeholder {
+            color: #999;
+            font-style: italic;
+            font-size: 0.9rem;
+        }
+
         .form-group input:focus,
         .form-group select:focus {
             outline: none;
@@ -299,19 +306,31 @@
                     </div>
                     <div class="form-group">
                         <label for="anchor_age">Age <span class="info-badge">Years</span></label>
-                        <input type="number" id="anchor_age" name="anchor_age" min="18" max="120" required>
+                        <input type="number" id="anchor_age" name="anchor_age" min="18" max="120" placeholder="e.g., 65" required>
                     </div>
                     <div class="form-group">
                         <label for="race">Race</label>
                         <select id="race" name="race" required>
                             <option value="">Select Race</option>
-                            <option value="WHITE">White</option>
-                            <option value="BLACK">Black</option>
-                            <option value="ASIAN">Asian</option>
-                            <option value="HISPANIC">Hispanic</option>
-                            <option value="OTHER">Other</option>
+                            <option value="WHITE">WHITE</option>
+                            <option value="BLACK/AFRICAN AMERICAN">BLACK/AFRICAN AMERICAN</option>
+                            <option value="UNKNOWN">UNKNOWN</option>
+                            <option value="OTHER">OTHER</option>
+                            <option value="WHITE - OTHER EUROPEAN">WHITE - OTHER EUROPEAN</option>
+                            <option value="HISPANIC/LATINO - PUERTO RICAN">HISPANIC/LATINO - PUERTO RICAN</option>
+                            <option value="WHITE - RUSSIAN">WHITE - RUSSIAN</option>
+                            <option value="ASIAN - CHINESE">ASIAN - CHINESE</option>
+                            <option value="UNABLE TO OBTAIN">UNABLE TO OBTAIN</option>
+                            <option value="HISPANIC OR LATINO">HISPANIC OR LATINO</option>
+                            <option value="HISPANIC/LATINO - DOMINICAN">HISPANIC/LATINO - DOMINICAN</option>
+                            <option value="ASIAN">ASIAN</option>
+                            <option value="BLACK/CARIBBEAN ISLAND">BLACK/CARIBBEAN ISLAND</option>
+                            <option value="BLACK/AFRICAN">BLACK/AFRICAN</option>
+                            <option value="PORTUGUESE">PORTUGUESE</option>
+                            <option value="BLACK/CAPE VERDEAN">BLACK/CAPE VERDEAN</option>
                         </select>
                     </div>
+
                     <div class="form-group">
                         <label for="marital_status">Marital Status</label>
                         <select id="marital_status" name="marital_status" required>
@@ -331,10 +350,15 @@
                         <label for="admission_type">Admission Type</label>
                         <select id="admission_type" name="admission_type" required>
                             <option value="">Select Type</option>
-                            <option value="EMERGENCY">Emergency</option>
                             <option value="URGENT">Urgent</option>
-                            <option value="ELECTIVE">Elective</option>
+                            <option value="EW EMER.">EW Emer.</option>
                             <option value="OBSERVATION ADMIT">Observation Admit</option>
+                            <option value="EU OBSERVATION">EU Observation</option>
+                            <option value="SURGICAL SAME DAY ADMISSION">Surgical Same Day Admission</option>
+                            <option value="ELECTIVE">Elective</option>
+                            <option value="AMBULATORY OBSERVATION">Ambulatory Observation</option>
+                            <option value="DIRECT OBSERVATION">Direct Observation</option>
+                            <option value="DIRECT EMER.">Direct Emer.</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -342,9 +366,10 @@
                         <select id="insurance" name="insurance" required>
                             <option value="">Select Insurance</option>
                             <option value="Medicare">Medicare</option>
-                            <option value="Medicaid">Medicaid</option>
                             <option value="Private">Private</option>
+                            <option value="Medicaid">Medicaid</option>
                             <option value="Other">Other</option>
+                            <option value="No charge">No Charge</option>
                         </select>
                     </div>
                 </div>
@@ -354,11 +379,11 @@
                 <div class="form-grid">
                     <div class="form-group">
                         <label for="troponin_t">Troponin T <span class="info-badge">ng/mL</span></label>
-                        <input type="number" step="0.001" id="troponin_t" name="troponin_t" required>
+                        <input type="number" step="0.001" id="troponin_t" name="troponin_t" placeholder="Normal: 0.0-0.01" required>
                     </div>
                     <div class="form-group">
                         <label for="creatine_kinase_mb">Creatine Kinase MB <span class="info-badge">ng/mL</span></label>
-                        <input type="number" step="0.1" id="creatine_kinase_mb" name="creatine_kinase_mb" required>
+                        <input type="number" step="0.1" id="creatine_kinase_mb" name="creatine_kinase_mb" placeholder="Normal: 0.0-10.0" required>
                     </div>
                 </div>
 
@@ -367,27 +392,27 @@
                 <div class="form-grid">
                     <div class="form-group">
                         <label for="creatinine">Creatinine <span class="info-badge">mg/dL</span></label>
-                        <input type="number" step="0.01" id="creatinine" name="creatinine" required>
+                        <input type="number" step="0.01" id="creatinine" name="creatinine" placeholder="Normal: 0.4-1.1" required>
                     </div>
                     <div class="form-group">
                         <label for="glucose">Glucose <span class="info-badge">mg/dL</span></label>
-                        <input type="number" step="0.1" id="glucose" name="glucose" required>
+                        <input type="number" step="0.1" id="glucose" name="glucose" placeholder="Normal: 70-100" required>
                     </div>
                     <div class="form-group">
                         <label for="sodium">Sodium <span class="info-badge">mEq/L</span></label>
-                        <input type="number" step="0.1" id="sodium" name="sodium" required>
+                        <input type="number" step="0.1" id="sodium" name="sodium" placeholder="Normal: 133-145" required>
                     </div>
                     <div class="form-group">
                         <label for="potassium">Potassium <span class="info-badge">mEq/L</span></label>
-                        <input type="number" step="0.01" id="potassium" name="potassium" required>
+                        <input type="number" step="0.01" id="potassium" name="potassium" placeholder="Normal: 3.3-5.1" required>
                     </div>
                     <div class="form-group">
                         <label for="hemoglobin">Hemoglobin <span class="info-badge">g/dL</span></label>
-                        <input type="number" step="0.1" id="hemoglobin" name="hemoglobin" required>
+                        <input type="number" step="0.1" id="hemoglobin" name="hemoglobin" placeholder="Normal: 12.0-16.0" required>
                     </div>
                     <div class="form-group">
                         <label for="white_blood_cells">White Blood Cells <span class="info-badge">K/uL</span></label>
-                        <input type="number" step="0.01" id="white_blood_cells" name="white_blood_cells" required>
+                        <input type="number" step="0.01" id="white_blood_cells" name="white_blood_cells" placeholder="Normal: 4.0-10.0" required>
                     </div>
                 </div>
 
@@ -396,27 +421,27 @@
                 <div class="form-grid">
                     <div class="form-group">
                         <label for="heart_rate">Heart Rate <span class="info-badge">bpm</span></label>
-                        <input type="number" step="0.1" id="heart_rate" name="heart_rate" required>
+                        <input type="number" step="0.1" id="heart_rate" name="heart_rate" placeholder="Normal: 60-100" required>
                     </div>
                     <div class="form-group">
                         <label for="bp_systolic">Blood Pressure (Systolic) <span class="info-badge">mmHg</span></label>
-                        <input type="number" step="0.1" id="bp_systolic" name="bp_systolic" required>
+                        <input type="number" step="0.1" id="bp_systolic" name="bp_systolic" placeholder="Normal: <120" required>
                     </div>
                     <div class="form-group">
                         <label for="bp_diastolic">Blood Pressure (Diastolic) <span class="info-badge">mmHg</span></label>
-                        <input type="number" step="0.1" id="bp_diastolic" name="bp_diastolic" required>
+                        <input type="number" step="0.1" id="bp_diastolic" name="bp_diastolic" placeholder="Normal: <80" required>
                     </div>
                     <div class="form-group">
                         <label for="spo2">SpO2 <span class="info-badge">%</span></label>
-                        <input type="number" step="0.1" id="spo2" name="spo2" min="0" max="100" required>
+                        <input type="number" step="0.1" id="spo2" name="spo2" min="0" max="100" placeholder="Normal: 95-100" required>
                     </div>
                     <div class="form-group">
                         <label for="respiratory_rate">Respiratory Rate <span class="info-badge">/min</span></label>
-                        <input type="number" step="0.1" id="respiratory_rate" name="respiratory_rate" required>
+                        <input type="number" step="0.1" id="respiratory_rate" name="respiratory_rate" placeholder="Normal: 12-20" required>
                     </div>
                     <div class="form-group">
                         <label for="temperature">Temperature <span class="info-badge">°F</span></label>
-                        <input type="number" step="0.1" id="temperature" name="temperature" required>
+                        <input type="number" step="0.1" id="temperature" name="temperature" placeholder="Normal: 97-99" required>
                     </div>
                 </div>
 
