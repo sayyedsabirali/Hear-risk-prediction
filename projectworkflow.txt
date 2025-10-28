@@ -93,7 +93,7 @@ Test locally using Fastapi: python app.py
 
 11. CI/CD Pipeline
 
-Getting started with CI-CD process:
+  - Getting started with CI-CD process:
 
       * Setup the dockerfile and .dockerignore file
       * Setup the .github\workflows dir and aws.yaml file within
@@ -109,7 +109,7 @@ Getting started with CI-CD process:
         >> Go to instance >> click on "Connect" >> Connect using EC2 Instance Connect 
         >> Connect (Terminal will be launched)
 
-Open EC2 and Install docker in EC2 Machine:
+  - Open EC2 and Install docker in EC2 Machine:
 
       ## Optinal
       sudo apt-get update -y
@@ -120,7 +120,7 @@ Open EC2 and Install docker in EC2 Machine:
       sudo usermod -aG docker ubuntu
       newgrp docker
 
-Next step is to connect Github with EC2(Self hosted runner):
+  - Next step is to connect Github with EC2(Self hosted runner):
       * select your project on Github >> go to settings >> Actions >> Runner >> New self hosted runner
         >> Select OS (Linux) >> Now step by step run all "Download" related commands on EC2 server 
         >> run first "Configure" command (hit enter instead of setting a runner group, runner name: self-hosted)
@@ -129,35 +129,35 @@ Next step is to connect Github with EC2(Self hosted runner):
         >> To crosscheck, go back to Github and click on Runner and you will see runner state as "idle"
         >> If you do ctrl+c on EC2 server then runner will shut then restart with "./run.sh"
 
-Setup your Github secrets: (Github project>Settings>SecretandVariable>Actions>NewRepoSecret)
+  - Setup your Github secrets: (Github project>Settings>SecretandVariable>Actions>NewRepoSecret)
       AWS_ACCESS_KEY_ID
       AWS_SECRET_ACCESS_KEY
       AWS_DEFAULT_REGION
       ECR_REPO
 
-CI-CD pipeline will be triggered at next commit and push.
+  - CI-CD pipeline will be triggered at next commit and push.
 
-1️⃣1️⃣ EC2 Deployment
+12. Kubernetes (EKS) Deployment
 
-Launch Ubuntu EC2 instance, install Docker.
+  - setup required before moving to EKS deployment
+      Download kubectl: Invoke-WebRequest -Uri "https://dl.k8s.io/release/v1.28.2/bin/windows/amd64/kubectl.exe" -OutFile "kubectl.exe"
+      Locate the Download: Get-Location
+      Move kubectl.exe to a directory in your system PATH, such as C:\Windows\System32: Move-Item -Path .\kubectl.exe -Destination "C:\Windows\System32"
+      Test if kubectl is properly installed: kubectl version --client
 
-Run container on EC2:
-docker run -p 5000:5000 project-app:latest
 
-Allow inbound traffic for port 5000 via Security Group.
- 
-Access app via public IP: http://<ec2-ip>:5000
+      Download eksctl: Invoke-WebRequest -Uri "https://github.com/weaveworks/eksctl/releases/download/v0.158.0/eksctl_Windows_amd64.zip" -OutFile "eksctl.zip"
+      Extract eksctl: Expand-Archive -Path .\eksctl.zip -DestinationPath .
+      Move the extracted eksctl.exe file to C:\Windows\System32 or any folder in your system PATH: Move-Item -Path .\eksctl.exe -Destination "C:\Windows\System32\eksctl.exe"
 
-1️⃣2️⃣ Kubernetes (EKS) Deployment
-
-Install kubectl and eksctl.
-
-Create EKS cluster:
-
-eksctl create cluster --name project-cluster --region us-east-1 --nodegroup-name project-nodes --node-type t3.small --nodes 1 --nodes-min 1 --nodes-max 1 --managed
-
-Update kubeconfig:
-aws eks --region us-east-1 update-kubeconfig --name project-cluster
+      Verify AWS CLI: aws --version
+      Verify kubectl: kubectl version --client
+      Verify eksctl: eksctl version
+  
+  - Create EKS cluster:
+      eksctl create cluster --name project-cluster --region us-east-1 --nodegroup-name project-nodes --node-type t3.small --nodes 1 --nodes-min 1 --nodes-max 1 --managed
+  - Update kubeconfig:
+      aws eks --region us-east-1 update-kubeconfig --name project-cluster
 
 Create deployment.yaml and service.yaml for Flask app.
 
