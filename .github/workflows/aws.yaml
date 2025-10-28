@@ -7,8 +7,6 @@ on:
 jobs:
   Continuous-Integration:
     runs-on: ubuntu-latest
-    outputs:
-      image: ${{ steps.build-image.outputs.image }}
 
     steps:
       - name: Checkout
@@ -26,7 +24,6 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v1
 
       - name: Build, tag, and push image to Amazon ECR
-        id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ${{ secrets.ECR_REPO }}
@@ -36,9 +33,7 @@ jobs:
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           echo "Pushing image to ECR..."
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          
-          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
-          echo "Image URI: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          echo "✅ Image pushed: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
 
   Continuous-Deployment:
@@ -56,13 +51,21 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
 
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
       - name: Update kubeconfig for EKS
         run: |
           aws eks --region ${{ secrets.AWS_DEFAULT_REGION }} update-kubeconfig --name project-cluster
 
       - name: Deploy to EKS
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ secrets.ECR_REPO }}
+          IMAGE_TAG: latest
         run: |
-          IMAGE_URI="${{ needs.Continuous-Integration.outputs.image }}"
+          IMAGE_URI="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
           
           echo "Deploying latest image to EKS cluster..."
           echo "Using image: $IMAGE_URI"
@@ -70,6 +73,8 @@ jobs:
           # Verify IMAGE_URI is not empty
           if [ -z "$IMAGE_URI" ]; then
             echo "❌ ERROR: IMAGE_URI is empty!"
+            echo "ECR_REGISTRY: $ECR_REGISTRY"
+            echo "ECR_REPOSITORY: $ECR_REPOSITORY"
             exit 1
           fi
 
@@ -82,43 +87,3 @@ jobs:
           echo "✅ Deployment updated successfully."
           echo "Verifying pods..."
           kubectl get pods -o wide
-
-
-# EC2 deployment directly 
-  # Continuous-Deployment:
-  #   needs: Continuous-Integration
-  #   runs-on: self-hosted
-
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v3
-
-  #     - name: Configure AWS credentials
-  #       uses: aws-actions/configure-aws-credentials@v1
-  #       with:
-  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #         aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
-
-  #     - name: Login to Amazon ECR
-  #       id: login-ecr
-  #       uses: aws-actions/amazon-ecr-login@v1
-
-  #     - name: Deploy latest Docker image on EC2
-  #       run: |
-  #         echo "Pulling latest image from ECR..."
-  #         docker pull ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPO }}:latest
-
-  #         echo "Stopping old container if exists..."
-  #         docker stop app-container || true
-  #         docker rm app-container || true
-
-  #         echo "Running new container..."
-  #         docker run -d --name app-container \
-  #           --restart always \
-  #           -p 5000:5000 \
-  #           -e MONGODB_URL="${{ secrets.MONGODB_URL}}" \
-  #           -e AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID}}" \
-  #           -e AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY}}" \
-  #           -e AWS_DEFAULT_REGION="${{ secrets.AWS_DEFAULT_REGION}}" \
-  #           ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPO}}:latest
