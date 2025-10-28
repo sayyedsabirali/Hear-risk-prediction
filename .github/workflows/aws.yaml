@@ -8,7 +8,7 @@ jobs:
   Continuous-Integration:
     runs-on: ubuntu-latest
     outputs:
-      image: ${{ steps.build-image.outputs.image }}  # ✅ Export output to job level
+      image: ${{ steps.build-image.outputs.image }}
 
     steps:
       - name: Checkout
@@ -36,8 +36,9 @@ jobs:
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           echo "Pushing image to ECR..."
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-
+          
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+          echo "Image URI: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
 
   Continuous-Deployment:
@@ -60,11 +61,17 @@ jobs:
           aws eks --region ${{ secrets.AWS_DEFAULT_REGION }} update-kubeconfig --name project-cluster
 
       - name: Deploy to EKS
-        env:
-          IMAGE_URI: ${{ needs.Continuous-Integration.outputs.image }}  # ✅ Now this will work
         run: |
+          IMAGE_URI="${{ needs.Continuous-Integration.outputs.image }}"
+          
           echo "Deploying latest image to EKS cluster..."
           echo "Using image: $IMAGE_URI"
+          
+          # Verify IMAGE_URI is not empty
+          if [ -z "$IMAGE_URI" ]; then
+            echo "❌ ERROR: IMAGE_URI is empty!"
+            exit 1
+          fi
 
           # Apply Kubernetes manifests
           kubectl apply -f deployment.yaml
@@ -75,8 +82,6 @@ jobs:
           echo "✅ Deployment updated successfully."
           echo "Verifying pods..."
           kubectl get pods -o wide
-
-
 
 
 # EC2 deployment directly 
