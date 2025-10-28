@@ -84,9 +84,10 @@ jobs:
           # Update image in existing deployment
           kubectl set image deployment/heart-risk-prediction heart-risk-prediction=$IMAGE_URI --record=false
 
-          echo "Deployment updated successfully."
+          echo "✅ Deployment updated successfully."
           echo "Verifying pods..."
           kubectl get pods -o wide
+
 
 
 
