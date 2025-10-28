@@ -64,7 +64,7 @@ jobs:
           kubectl apply -f deployment.yaml
 
           # Update image in existing deployment
-          kubectl set image deployment/project-deployment project-container=${{ env.image }} --record
+          kubectl set image deployment/heart-risk-prediction heart-risk-prediction=${{ env.image }} --record=false
 
           echo "Deployment updated successfully."
 
