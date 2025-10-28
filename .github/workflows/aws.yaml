@@ -7,13 +7,13 @@ on:
 jobs:
   Continuous-Integration:
     runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.build-image.outputs.image }}  # ✅ Export output to job level
 
     steps:
-      # 1️⃣ Checkout source code
       - name: Checkout
         uses: actions/checkout@v2
 
-      # 2️⃣ Configure AWS credentials
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -21,12 +21,10 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
 
-      # 3️⃣ Login to ECR
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      # 4️⃣ Build, tag, and push Docker image to ECR
       - name: Build, tag, and push image to Amazon ECR
         id: build-image
         env:
@@ -39,7 +37,6 @@ jobs:
           echo "Pushing image to ECR..."
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-          # Save the image URI as an output for next job
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
 
@@ -48,11 +45,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout repository (for Kubernetes manifests)
       - name: Checkout
         uses: actions/checkout@v3
 
-      # 2️⃣ Configure AWS credentials again
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -60,34 +55,26 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
 
-      # 3️⃣ Update kubeconfig for EKS cluster
       - name: Update kubeconfig for EKS
         run: |
           aws eks --region ${{ secrets.AWS_DEFAULT_REGION }} update-kubeconfig --name project-cluster
 
-      # 4️⃣ Deploy to EKS
       - name: Deploy to EKS
         env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: ${{ secrets.ECR_REPO }}
-          IMAGE_TAG: latest
+          IMAGE_URI: ${{ needs.Continuous-Integration.outputs.image }}  # ✅ Now this will work
         run: |
           echo "Deploying latest image to EKS cluster..."
-
-          # Reconstruct the full image path (must match ECR push)
-          IMAGE_URI=${{ needs.Continuous-Integration.outputs.image }}
           echo "Using image: $IMAGE_URI"
 
-          # Apply Kubernetes manifests (safe even if unchanged)
+          # Apply Kubernetes manifests
           kubectl apply -f deployment.yaml
 
           # Update image in existing deployment
-          kubectl set image deployment/heart-risk-prediction heart-risk-prediction=$IMAGE_URI --record=false
+          kubectl set image deployment/heart-risk-prediction heart-risk-prediction=$IMAGE_URI
 
           echo "✅ Deployment updated successfully."
           echo "Verifying pods..."
           kubectl get pods -o wide
-
 
 
 
