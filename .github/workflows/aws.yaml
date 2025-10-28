@@ -1,5 +1,5 @@
-name: Deploy Application Docker Image to EC2 instance
- 
+name: Deploy Application Docker Image to EKS Cluster
+
 on:
   push:
     branches: [new_schema_update]
@@ -9,9 +9,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Checkout source code
       - name: Checkout
         uses: actions/checkout@v2
 
+      # 2️⃣ Configure AWS credentials
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -19,10 +21,12 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
 
+      # 3️⃣ Login to ECR
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
+      # 4️⃣ Build, tag, and push Docker image to ECR
       - name: Build, tag, and push image to Amazon ECR
         id: build-image
         env:
@@ -30,18 +34,25 @@ jobs:
           ECR_REPOSITORY: ${{ secrets.ECR_REPO }}
           IMAGE_TAG: latest
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .  
+          echo "Building Docker image..."
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          echo "Pushing image to ECR..."
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+          # Save the image URI as an output for next job
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
 
   Continuous-Deployment:
     needs: Continuous-Integration
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Checkout repository (for Kubernetes manifests)
       - name: Checkout
         uses: actions/checkout@v3
 
+      # 2️⃣ Configure AWS credentials again
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -49,14 +60,12 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
 
+      # 3️⃣ Update kubeconfig for EKS cluster
       - name: Update kubeconfig for EKS
         run: |
           aws eks --region ${{ secrets.AWS_DEFAULT_REGION }} update-kubeconfig --name project-cluster
 
-      - name: Set ECR image variable
-        run: echo "ECR_IMAGE=${{ env.image }}" >> $GITHUB_ENV
-
-      # Deploy to EKS
+      # 4️⃣ Deploy to EKS
       - name: Deploy to EKS
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -71,15 +80,13 @@ jobs:
 
           # Apply Kubernetes manifests (safe even if unchanged)
           kubectl apply -f deployment.yaml
-          kubectl apply -f service.yaml
 
           # Update image in existing deployment
           kubectl set image deployment/heart-risk-prediction heart-risk-prediction=$IMAGE_URI --record=false
 
-          echo "✅ Deployment updated successfully."
+          echo "Deployment updated successfully."
           echo "Verifying pods..."
           kubectl get pods -o wide
-
 
 
 
