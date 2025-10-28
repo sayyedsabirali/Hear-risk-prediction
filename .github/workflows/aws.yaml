@@ -56,17 +56,30 @@ jobs:
       - name: Set ECR image variable
         run: echo "ECR_IMAGE=${{ env.image }}" >> $GITHUB_ENV
 
+      # Deploy to EKS
       - name: Deploy to EKS
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ secrets.ECR_REPO }}
+          IMAGE_TAG: latest
         run: |
           echo "Deploying latest image to EKS cluster..."
 
-          # Apply Kubernetes manifests (make sure you have deployment.yaml & service.yaml)
+          # Reconstruct the full image path (must match ECR push)
+          IMAGE_URI=${{ needs.Continuous-Integration.outputs.image }}
+          echo "Using image: $IMAGE_URI"
+
+          # Apply Kubernetes manifests (safe even if unchanged)
           kubectl apply -f deployment.yaml
+          kubectl apply -f service.yaml
 
           # Update image in existing deployment
-          kubectl set image deployment/heart-risk-prediction heart-risk-prediction=${{ env.image }} --record=false
+          kubectl set image deployment/heart-risk-prediction heart-risk-prediction=$IMAGE_URI --record=false
 
-          echo "Deployment updated successfully."
+          echo "✅ Deployment updated successfully."
+          echo "Verifying pods..."
+          kubectl get pods -o wide
+
 
 
 
