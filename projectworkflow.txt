@@ -152,7 +152,7 @@ Test locally using Fastapi: python app.py
 
       Verify AWS CLI: aws --version
       Verify kubectl: kubectl version --client
-      Verify eksctl: eksctl version
+      Verify eksctl: eksctl version 
   
   - Create EKS cluster:
       eksctl create cluster --name project-cluster --region us-east-1 --nodegroup-name project-nodes --node-type t3.small --nodes 1 --nodes-min 1 --nodes-max 1 --managed
