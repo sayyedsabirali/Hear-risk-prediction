@@ -17,6 +17,7 @@ spec:
       containers:
       - name: heart-risk-prediction
         image: 680789327714.dkr.ecr.us-east-1.amazonaws.com/heart-risk-prediction:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 5000
         resources:

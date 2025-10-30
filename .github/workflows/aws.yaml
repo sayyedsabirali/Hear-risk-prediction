@@ -70,20 +70,11 @@ jobs:
           echo "Deploying latest image to EKS cluster..."
           echo "Using image: $IMAGE_URI"
           
-          # Verify IMAGE_URI is not empty
-          if [ -z "$IMAGE_URI" ]; then
-            echo "❌ ERROR: IMAGE_URI is empty!"
-            echo "ECR_REGISTRY: $ECR_REGISTRY"
-            echo "ECR_REPOSITORY: $ECR_REPOSITORY"
-            exit 1
-          fi
-
-          # Apply Kubernetes manifests
-          kubectl apply -f deployment.yaml
-
-          # Update image in existing deployment
-          kubectl set image deployment/heart-risk-prediction heart-risk-prediction=$IMAGE_URI
-
-          echo "✅ Deployment updated successfully."
-          echo "Verifying pods..."
+          # Update deployment with new image
+          kubectl set image deployment/heart-risk-prediction heart-risk-prediction=$IMAGE_URI --record
+          
+          # Wait for rollout to complete
+          kubectl rollout status deployment/heart-risk-prediction --timeout=300s
+          
+          echo "Deployment updated successfully."
           kubectl get pods -o wide
