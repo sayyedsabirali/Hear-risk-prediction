@@ -9,40 +9,72 @@
 Early detection of heart attacks in ICU patients is challenging because clinical data is massive, complex, and continuously changing.  
 This project builds an automated **early-warning ML system** that predicts the risk of a heart attack using patient vitals, lab values, and demographics.
 
-The solution integrates **full MLOps pipeline** including:
+The solution integrates a **complete end-to-end MLOps pipeline**, including:
 - Data ingestion  
 - Data validation & transformation  
-- ML model training & tuning  
-- MLflow experiment tracking  
+- ML model training  
+- Local MLflow experiment tracking  
 - DVC for data versioning  
-- AWS S3 for storage  
 - Docker containerization  
 - CI/CD with GitHub Actions  
-- Kubernetes (EKS) deployment  
-- Monitoring with Prometheus + Grafana  
+- AWS (S3, ECR, EC2, EKS) for deployment  
+
+---
+
+## 🎬 Project Demo Video
+
+👉 **Watch the full project demonstration:**  
+https://drive.google.com/file/d/1vfAtL3qrUr5U6ToNtJ9Jf6OEGZf4CABv/view?usp=drive_link
 
 ---
 
 ## 📚 Dataset Used
 
-**Source:** MIMIC-IV v3.1 (PhysioNet)  
-**Raw data size:** ~60 GB across tables  
-**Tables used:**  
+The **MIMIC-IV v3.1** dataset from PhysioNet is a **very large clinical database (~500GB+)** containing ICU patient data such as demographics, labs, vitals, medications, and diagnoses.
+
+Because the full dataset is extremely large, we extracted only the tables relevant to predicting heart-failure risk.
+
+### 📦 Extracted Tables (60GB from 500GB+)
+We selected **5 key tables** important for clinical prediction:
+
 - `patients`  
 - `admissions`  
 - `diagnoses_icd`  
 - `labevents`  
 - `chartevents`
 
-**Final curated dataset:**
-- **33,018 patients**  
-- 16,509 heart-attack cases  
-- 16,509 matched controls  
+These combined were approximately **60GB** in size.
+
+### 🧩 Building the Final Dataset
+
+From these 60GB tables:
+
+1. **Filtered patients diagnosed with heart failure / heart attack**  
+   using ICD-9 (`410%`) and ICD-10 (`I21%`) codes.
+
+2. **Selected an equal number of non-heart-failure patients**  
+   to create a **balanced dataset** with a 1:1 ratio.  
+   - Prevents bias  
+   - Improves model training stability  
+   - Gives more reliable evaluation
+
+3. **Selected only clinically meaningful features**, including:  
+   - Lab values  
+   - Vital signs  
+   - Demographics  
+   - Admission details
+
+### ✅ Final Curated Dataset
+- **33,018 ICU patients**  
+- 16,509 heart-failure cases  
+- 16,509 matched non-heart-failure controls  
 - **23 clinical features** (labs, vitals, demographics)
+
+This dataset was cleaned, balanced, and optimized for machine learning.
 
 ---
 
-## 🔬 Core Features
+## 🔬 Core Features Used
 
 ### **Lab Features**
 - Creatinine  
@@ -74,7 +106,7 @@ The solution integrates **full MLOps pipeline** including:
 
 ## 🧪 Machine Learning Models
 
-All major ML models were tested:
+All major ML models were trained and evaluated:
 - Logistic Regression  
 - Random Forest  
 - Extra Trees  
@@ -88,107 +120,93 @@ All major ML models were tested:
 - Naive Bayes  
 
 ### ⭐ Best Models (After Hyperparameter Tuning)
+
 | Model        | Accuracy | AUC    | F1     | Precision | Recall |
 |--------------|----------|--------|--------|-----------|--------|
 | **XGBoost**  | **0.9412** | 0.9825 | 0.9401 | 0.9588    | 0.9222 |
 | **CatBoost** | 0.9356   | **0.9830** | 0.9344 | 0.9534    | 0.9161 |
 
+Both models performed extremely well and were used for final evaluation.
+
 ---
 
 ## ⚙️ Tech Stack
 
-### **Languages & Tools**
+### **Languages & Libraries**
 - Python  
-- Pandas, NumPy, Scikit-learn  
+- Pandas, NumPy  
+- Scikit-learn  
 - XGBoost, LightGBM, CatBoost  
 - DuckDB  
-- MLflow & Dagshub  
-- FastAPI  
+- Matplotlib / Seaborn  
+
+### **MLOps & Infrastructure**
+- MLflow (local tracking)  
+- DVC (data versioning)  
 - Docker  
-- DVC  
-- GitHub Actions  
-- AWS S3, ECR, EC2, EKS  
-- Prometheus, Grafana  
+- AWS S3 (artifact storage)  
+- AWS ECR (container registry)  
+- AWS EC2  
+- Kubernetes (EKS)  
+- GitHub Actions (CI/CD)  
 
 ---
 
 ## 🔄 Project Workflow (MLOps Pipeline)
 
 ### **1. Project Setup**
-- Created project template using `template.py`  
-- Added editable install via `-e .`  
-- Configured local packages in `setup.py`  
+- Created project structure using `template.py`  
+- Added editable install (`-e .`)  
+- Added local package configuration in `setup.py`  
 
 ### **2. Data Ingestion**
-- Fetch data from MongoDB / DuckDB queries  
-- Convert key-value documents into DataFrame  
-- Store ingestion artifacts  
+- Pulled 5 major MIMIC-IV tables  
+- Performed filtering using ICD codes  
+- Created balanced heart-failure vs non-heart-failure dataset  
 
 ### **3. Data Validation**
-- Schema defined in `schema.yaml`  
-- Check missing values, columns, datatypes  
+- Schema in `schema.yaml`  
+- Check datatypes, missing values, required columns  
 
 ### **4. Data Transformation**
-- Handle missing values  
-- Outlier removal (IQR / winsorization)  
-- Log / Yeo-Johnson transforms  
-- Scaling (Standard / Robust / MinMax)  
+- Missing value handling  
+- Outlier treatment  
+- Skewness correction  
+- Standardization / normalization  
 
 ### **5. Model Training**
-- 240+ stratified combinations  
-- Multiple ML models trained  
-- MLflow logs metrics, parameters, artifacts  
+- Multiple ML models tested  
+- Hyperparameter tuning  
+- Tracked experiments using **local MLflow**  
 
 ### **6. Model Evaluation & Registry**
-- Compare with evaluation threshold  
-- Push best model to AWS S3 Model Registry  
+- Compared metrics using a threshold score  
+- Best model pushed to AWS S3 model registry  
 
 ### **7. Deployment**
-- Build Docker image  
-- Push to AWS ECR  
-- Deploy via Kubernetes (EKS)  
-- Expose FastAPI endpoints  
+- Built Docker image  
+- Pushed to AWS ECR  
+- Deployed to AWS EKS cluster with:
+  - `deployment.yaml`
+  - `service.yaml`
 
-### **8. Monitoring**
-- Prometheus scrapes FastAPI metrics  
-- Grafana dashboards visualize health & predictions  
-
----
-
-## 🚀 Deployment Architecture
-
-**Tech used:**
-- Docker  
-- AWS ECR (image storage)  
-- GitHub Actions CI/CD  
-- AWS EC2 (self-hosted runner optional)  
-- AWS EKS (Kubernetes cluster)  
-- LoadBalancer service for FastAPI  
-
----
-
-## 🧪 API Endpoints (FastAPI)
-
-### **POST /predict**
-Input patient values → returns risk score + prediction.
-
-### **POST /train**
-Triggers full training pipeline (optional).
+### **8. FastAPI Endpoints**
+- `/predict` — returns heart-failure risk score  
+- `/train` — triggers training pipeline (optional)  
 
 ---
 
 ## 💻 Running Locally
 
 ```bash
-# 1. Create virtual environment
+# Create virtual environment
 python -m venv heart-risk
 
-# 2. Activate environment
-heart-risk\Scripts\activate  # Windows
-# source heart-risk/bin/activate  # Linux/Mac
+# Activate (Windows)
+heart-risk\Scripts\activate
 
-# 3. Install dependencies
+# Install dependencies
 pip install -r requirements.txt
 
-# 4. Run API
+# Run API
 python app.py
