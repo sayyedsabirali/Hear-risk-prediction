@@ -192,7 +192,6 @@ Both models performed extremely well and were used for final evaluation.
 
 ### **8. FastAPI Endpoints**
 - `/predict` — returns heart-failure risk score  
-- `/train` — triggers training pipeline (optional)  
 
 ---
 
