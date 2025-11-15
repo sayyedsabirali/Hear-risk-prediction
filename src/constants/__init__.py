@@ -1,4 +1,3 @@
-
 import os
 from datetime import date
 from dotenv import load_dotenv
@@ -13,7 +12,7 @@ MONGODB_URL_KEY = f"mongodb+srv://{user}:{password}@heart.xfuzvm4.mongodb.net/?r
 
 PIPELINE_NAME: str = ""
 ARTIFACT_DIR: str = "artifact"
-Path_of_data= "F:\\18. MAJOR PROJECT\\Data Handling\\heart_risk_complete_dataset.csv"
+Path_of_data= "F:\\18. MAJOR PROJECT\\Heart-related-content\\heart_risk_complete_dataset.csv"
 
 MODEL_FILE_NAME = "model.pkl"
 
@@ -64,22 +63,32 @@ MODEL_TRAINER_TRAINED_MODEL_DIR: str = "trained_model"
 MODEL_TRAINER_TRAINED_MODEL_NAME: str = "model.pkl"
 MODEL_TRAINER_EXPECTED_SCORE: float = 0.2
 MODEL_TRAINER_MODEL_CONFIG_FILE_PATH: str = os.path.join("config", "model.yaml")
-MODEL_TRAINER_MODEL_TYPE: str = "LightGBM"
-MODEL_TRAINER_N_ESTIMATORS: int = 2000
-MODEL_TRAINER_MAX_DEPTH: int = 12
-MODEL_TRAINER_LEARNING_RATE: float = 0.02
-MODEL_TRAINER_NUM_LEAVES: int = 64
-MODEL_TRAINER_SUBSAMPLE: float = 0.8
-MODEL_TRAINER_COLSAMPLE_BYTREE: float = 0.8
-MODEL_TRAINER_REG_ALPHA: float = 0.1
-MODEL_TRAINER_REG_LAMBDA: float = 0.1
-MODEL_TRAINER_MIN_CHILD_SAMPLES: int = 20
+
+# CHANGED: LightGBM to XGBoost with tuned parameters
+MODEL_TRAINER_MODEL_TYPE: str = "XGBoost"
+
+# CHANGED: Updated to tuned XGBoost parameters from your best model
+MODEL_TRAINER_N_ESTIMATORS: int = 400  # Changed from 2000 to 400
+MODEL_TRAINER_MAX_DEPTH: int = 10      # Changed from 12 to 10
+MODEL_TRAINER_LEARNING_RATE: float = 0.1  # Changed from 0.02 to 0.1
+MODEL_TRAINER_SUBSAMPLE: float = 0.8   # Same as tuned
+MODEL_TRAINER_COLSAMPLE_BYTREE: float = 0.7  # Changed from 0.8 to 0.7
+MODEL_TRAINER_REG_ALPHA: float = 0.1   # Same as tuned (reg_alpha)
+MODEL_TRAINER_REG_LAMBDA: float = 0.5  # Changed from 0.1 to 0.5 (reg_lambda)
+
+# CHANGED: Added XGBoost specific parameters
+MODEL_TRAINER_GAMMA: float = 0.5       # Added gamma parameter
+MODEL_TRAINER_MIN_CHILD_WEIGHT: int = 5  # Added min_child_weight (changed from min_child_samples)
+
+# REMOVED: LightGBM specific parameters
+# MODEL_TRAINER_NUM_LEAVES: int = 64
+# MODEL_TRAINER_MIN_CHILD_SAMPLES: int = 20
+
 MODEL_TRAINER_RANDOM_STATE: int = 42
 MODEL_TRAINER_VERBOSE = -1
 
-# Feature Engineering Constants
-FEATURE_SELECTION_COUNT: int = 30
-
+# CHANGED: Removed feature engineering since you don't want it
+# FEATURE_SELECTION_COUNT: int = 30
 
 """
 MODEL Evaluation related constants

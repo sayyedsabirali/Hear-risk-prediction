@@ -1,235 +1,318 @@
-import mlflow
+"""Complete MLflow Experiment Pipeline"""
+
 import pandas as pd
 import numpy as np
-import os
-import sys
+import mlflow
+import mlflow.sklearn
 import matplotlib.pyplot as plt
 import seaborn as sns
 from datetime import datetime
-from mlflow_experiments.config.data_config import *
+from pathlib import Path
+import warnings
+warnings.filterwarnings('ignore')
 
-# Add parent directory to path
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Import our modules
+from preprocessor import DataPreprocessor
+from model_trainer import ModelTrainer
+from config import (generate_combinations, 
+                    generate_stratified_combinations, 
+                    get_full_grid_combinations)
 
-from config.preprocessing_config import COMBINATIONS_TO_TEST
-from pipeline.preprocessor import BoxPlotPreprocessor
-from pipeline.model_trainer import ModelTrainer
-
-class BoxPlotPreprocessingExperiment:
-    def __init__(self, data_path):
+class MLflowExperiment:
+    """Complete MLflow experiment with all features"""
+    
+    def __init__(self, data_path, experiment_name=None):
         self.data_path = data_path
         self.df = None
-        self.preprocessor = BoxPlotPreprocessor()
-        self.trainer = ModelTrainer()
-        self.setup_mlflow()
-    
-    def setup_mlflow(self):
-        """Setup MLflow tracking"""
+        self.artifacts_dir = Path("mlflow_artifacts")
+        self.artifacts_dir.mkdir(exist_ok=True)
+        
+        # Setup MLflow
         mlflow.set_tracking_uri("mlruns")
-        
-        # 🔥 DYNAMIC NAME WITH TIMESTAMP
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M")
-        experiment_name = f"1. DATA_PREPROCESSING_TRACKING_{timestamp}"
-        
+        if experiment_name is None:
+            experiment_name = f"1. DATA_PREPROCESSING_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         mlflow.set_experiment(experiment_name)
-        print(f"MLflow setup completed - Experiment: {experiment_name}")
-    
+        print(f"✅ MLflow Experiment: {experiment_name}")
+        
     def load_data(self):
-        """Load the dataset"""
-        print("Loading dataset...")
+        """Load and prepare dataset"""
+        print("\n📂 Loading dataset...")
         self.df = pd.read_csv(self.data_path)
-        print(f"Dataset loaded: {self.df.shape}")
-        print(f"Target distribution: {self.df['heart_attack'].value_counts().to_dict()}")
+        
+        # Drop ID columns
+        id_cols = ['subject_id', 'hadm_id']
+        self.df = self.df.drop(columns=[col for col in id_cols if col in self.df.columns], errors='ignore')
+        
+        print(f"✅ Shape: {self.df.shape}")
+        print(f"🎯 Target: {self.df['heart_attack'].value_counts().to_dict()}")
         return self.df
     
-    def run_single_experiment(self, combo, run_id):
-        """Run single preprocessing combination"""
+    def create_confusion_matrix_plot(self, cm, combo_name):
+        """Create and save confusion matrix plot"""
+        plt.figure(figsize=(8, 6))
+        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', cbar=True,
+                   xticklabels=['No Attack', 'Attack'],
+                   yticklabels=['No Attack', 'Attack'])
+        plt.title(f'Confusion Matrix\n{combo_name}', fontsize=14, fontweight='bold')
+        plt.ylabel('True Label', fontsize=12)
+        plt.xlabel('Predicted Label', fontsize=12)
+        plt.tight_layout()
         
-        experiment_name = f"{combo['name']}_{combo['model']['name']}"
+        safe_name = combo_name.replace('/', '_').replace(' ', '_')
+        cm_path = self.artifacts_dir / f'confusion_matrix_{safe_name}.png'
+        plt.savefig(cm_path, dpi=150, bbox_inches='tight')
+        plt.close()
         
-        with mlflow.start_run(run_name=experiment_name):
+        return str(cm_path)
+    
+    def create_feature_importance_plot(self, feature_df, combo_name):
+        """Create and save feature importance plot"""
+        if feature_df is None or len(feature_df) == 0:
+            return None
+        
+        plt.figure(figsize=(10, 6))
+        plt.barh(range(len(feature_df)), feature_df['importance'].values)
+        plt.yticks(range(len(feature_df)), feature_df['feature'].values)
+        plt.xlabel('Importance', fontsize=12)
+        plt.title(f'Top 10 Feature Importances\n{combo_name}', fontsize=14, fontweight='bold')
+        plt.gca().invert_yaxis()
+        plt.tight_layout()
+        
+        safe_name = combo_name.replace('/', '_').replace(' ', '_')
+        fi_path = self.artifacts_dir / f'feature_importance_{safe_name}.png'
+        plt.savefig(fi_path, dpi=150, bbox_inches='tight')
+        plt.close()
+        
+        return str(fi_path)
+    
+    def run_single_experiment(self, combo):
+        """Run single experiment with MLflow logging"""
+        
+        exp_name = f"{combo['name']}_{combo['model']['name']}"
+        
+        with mlflow.start_run(run_name=exp_name):
             try:
-                print(f"🔬 [{run_id+1}/{len(COMBINATIONS_TO_TEST)}] Running: {experiment_name}")
+                print(f"\n{'='*70}")
+                print(f"🔬 Running: {exp_name}")
+                print(f"{'='*70}")
                 
-                # Log all parameters
+                # Initialize preprocessor
+                preprocessor = DataPreprocessor()
+                trainer = ModelTrainer()
+                
+                # Copy original data
+                df_processed = self.df.copy()
+                original_rows = len(df_processed)
+                
+                # Identify columns
+                preprocessor.identify_columns(df_processed)
+                
+                # Step 1: Handle missing values
+                print("  ➤ Handling missing values...")
+                df_processed = preprocessor.handle_missing_values(
+                    df_processed,
+                    combo['missing']['numerical'],
+                    combo['missing']['categorical']
+                )
+                
+                # Step 2: Handle outliers
+                print("  ➤ Handling outliers...")
+                df_processed = preprocessor.handle_outliers(
+                    df_processed,
+                    combo['outlier']['method'],
+                    combo['outlier']['threshold']
+                )
+                
+                # Step 3: Reduce skewness
+                print("  ➤ Reducing skewness...")
+                df_processed = preprocessor.reduce_skewness(
+                    df_processed,
+                    combo['skewness']['method']
+                )
+                
+                # Step 4: Scale features
+                print("  ➤ Scaling features...")
+                df_processed = preprocessor.scale_features(
+                    df_processed,
+                    combo['scaling']['method']
+                )
+                
+                # Step 5: Encode categorical
+                print("  ➤ Encoding categorical...")
+                df_processed = preprocessor.encode_categorical(df_processed)
+                
+                final_rows = len(df_processed)
+                
+                # Check if enough data remains
+                if final_rows < 100:
+                    print(f"  ⚠️  Insufficient data: {final_rows} rows")
+                    mlflow.set_tag("status", "insufficient_data")
+                    return None
+                
+                # Log preprocessing parameters
                 mlflow.log_params({
+                    "combo_id": combo['id'],
                     "combo_name": combo['name'],
+                    "model_name": combo['model']['name'],
                     "missing_numerical": combo['missing']['numerical'],
                     "missing_categorical": combo['missing']['categorical'],
                     "outlier_method": combo['outlier']['method'],
                     "outlier_threshold": combo['outlier']['threshold'],
                     "skewness_method": combo['skewness']['method'],
                     "scaling_method": combo['scaling']['method'],
-                    "model_name": combo['model']['name']
                 })
                 
-                # Step 1: Identify columns
-                df_temp = self.df.copy()
-                numerical_cols, categorical_cols = self.preprocessor.identify_columns(df_temp)
+                # Log data metrics
+                mlflow.log_metrics({
+                    "original_rows": original_rows,
+                    "final_rows": final_rows,
+                    "rows_removed": original_rows - final_rows,
+                    "data_retention_pct": (final_rows / original_rows) * 100
+                })
                 
-                # Step 2: Handle missing values
-                df_temp, _ = self.preprocessor.handle_missing_values(
-                    df_temp, 
-                    combo['missing']['numerical'],
-                    combo['missing']['categorical']
+                # Log preprocessing steps
+                for i, step in enumerate(preprocessor.get_preprocessing_summary()):
+                    mlflow.log_param(f"preprocessing_step_{i+1}", f"{step['step']}: {step.get('method', 'N/A')}")
+                
+                # Train model
+                print(f"  ➤ Training {combo['model']['name']}...")
+                results = trainer.train_and_evaluate(
+                    df_processed,
+                    combo['model']['name'],
+                    combo['model']['params']
                 )
                 
-                # Step 3: Handle outliers
-                if combo['outlier']['method'] != "none":
-                    df_temp, _ = self.preprocessor.handle_outliers_boxplot(
-                        df_temp, 
-                        combo['outlier']['method'],
-                        combo['outlier']['threshold']
-                    )
-                
-                # Step 4: Reduce skewness
-                df_temp, _ = self.preprocessor.reduce_skewness(
-                    df_temp, combo['skewness']['method']
-                )
-                
-                # Step 5: Scale features
-                df_temp, _ = self.preprocessor.scale_features(
-                    df_temp, combo['scaling']['method']
-                )
-                
-                # Step 6: Encode categorical
-                df_temp = self.preprocessor.encode_categorical(df_temp)
-                
-                # Step 7: Train and evaluate model (only if we have enough data)
-                if len(df_temp) >= 100:
-                    results = self.trainer.train_and_evaluate(
-                        df_temp, combo['model']['name'], combo['model']['params']
-                    )
-                    
-                    if results:
-                        # Log only key metrics
-                        mlflow.log_metrics({
-                            "accuracy": results['accuracy'],
-                            "precision": results['precision'],
-                            "recall": results['recall'],
-                            "f1_score": results['f1_score'],
-                            "cv_mean_accuracy": results['cv_mean_accuracy'],
-                            "final_rows": results['final_rows']
-                        })
-                        
-                        print(f"{experiment_name} - Acc: {results['accuracy']:.4f}, F1: {results['f1_score']:.4f}, Rows: {results['final_rows']:,}")
-                        return {
-                            'combo_name': combo['name'],
-                            'model': combo['model']['name'],
-                            'accuracy': results['accuracy'],
-                            'precision': results['precision'],
-                            'recall': results['recall'],
-                            'f1_score': results['f1_score'],
-                            'cv_mean_accuracy': results['cv_mean_accuracy'],
-                            'final_rows': results['final_rows'],
-                            'missing_numerical': combo['missing']['numerical'],
-                            'missing_categorical': combo['missing']['categorical'],
-                            'outlier_method': combo['outlier']['method'],
-                            'outlier_threshold': combo['outlier']['threshold'],
-                            'skewness_method': combo['skewness']['method'],
-                            'scaling_method': combo['scaling']['method']
-                        }
-                    else:
-                        print(f" {experiment_name} - Model training failed")
-                        return None
-                else:
-                    print(f"{experiment_name} - Not enough data: {len(df_temp)} rows")
+                if results is None:
+                    print("  ❌ Training failed")
+                    mlflow.set_tag("status", "training_failed")
                     return None
+                
+                # Log model metrics
+                mlflow.log_metrics({
+                    "accuracy": results['accuracy'],
+                    "precision": results['precision'],
+                    "recall": results['recall'],
+                    "auc": results['auc'],
+                    "f1_score": results['f1_score'],
+                    "train_size": results['train_size'],
+                    "test_size": results['test_size']
+                })
+                
+                # Create and log confusion matrix
+                print("  ➤ Creating confusion matrix...")
+                cm_path = self.create_confusion_matrix_plot(
+                    results['confusion_matrix'],
+                    exp_name
+                )
+                mlflow.log_artifact(cm_path)
+                
+                # Create and log feature importance
+                if results['feature_importance'] is not None:
+                    print("  ➤ Creating feature importance plot...")
+                    fi_path = self.create_feature_importance_plot(
+                        results['feature_importance'],
+                        exp_name
+                    )
+                    if fi_path:
+                        mlflow.log_artifact(fi_path)
                     
+                    # Log top 10 features
+                    feature_df = results['feature_importance'].head(10).reset_index(drop=True)
+
+                    for idx, row in feature_df.iterrows():
+                        mlflow.log_param(
+                            f"top_feature_{idx+1}",
+                            f"{row['feature']}: {row['importance']:.4f}"
+                        )
+                
+                # Log model
+                mlflow.sklearn.log_model(results['model'], "model")
+                
+                # Set success status
+                mlflow.set_tag("status", "success")
+                
+                print(f"\n  SUCCESS!")
+                print(f"     Accuracy: {results['accuracy']:.4f}")
+                print(f"     Precision: {results['precision']:.4f}")
+                print(f"     Recall: {results['recall']:.4f}")
+                print(f"     F1-Score: {results['f1_score']:.4f}")
+                print(f"     AUC: {results['auc']:.4f}")
+                
+                return {
+                    'combo_id': combo['id'],
+                    'combo_name': combo['name'],
+                    'model': combo['model']['name'],
+                    'accuracy': results['accuracy'],
+                    'precision': results['precision'],
+                    'recall': results['recall'],
+                    'f1_score': results['f1_score'],
+                    'auc': results['auc'],
+                    'data_retention_pct': (final_rows / original_rows) * 100
+                }
+                
             except Exception as e:
-                print(f"{experiment_name} - Failed: {str(e)}")
+                print(f" Error: {str(e)}")
+                mlflow.set_tag("status", "error")
+                mlflow.set_tag("error_message", str(e))
                 return None
     
-    def run_all_experiments(self):
-        """Run all preprocessing combinations"""
-        print("STARTING ALL COMBINATION EXPERIMENTS")
-        print(f"Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    def run_all_experiments(self, max_combinations=20):
+        """Run multiple experiments"""
+        print("\n" + "="*70)
+        print("🚀 STARTING MLFLOW EXPERIMENTS")
+        print("="*70)
         
+        # Load data
         self.load_data()
         
-        total_combinations = len(COMBINATIONS_TO_TEST)
-        print(f"Total combinations to test: {total_combinations}")
+        # Generate combinations
+        combinations = generate_stratified_combinations(n_per_model=20)
+        print(f"\n📊 Total combinations to test: {len(combinations)}")
         
+        # Run experiments
         results = []
-        successful_runs = 0
+        successful = 0
         
-        for i, combo in enumerate(COMBINATIONS_TO_TEST):
-            result = self.run_single_experiment(combo, i)
+        for i, combo in enumerate(combinations):
+            print(f"\n[{i+1}/{len(combinations)}]")
+            result = self.run_single_experiment(combo)
             
             if result is not None:
                 results.append(result)
-                successful_runs += 1
+                successful += 1
         
-        # Final summary
-        print(f"\n{'='*60}")
-        print("EXPERIMENTS COMPLETED!")
-        print(f"Successful runs: {successful_runs}/{total_combinations}")
-        print(f"Finished at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        
+        # Save results
         if results:
-            # Create results summary
             results_df = pd.DataFrame(results)
+            results_path = self.artifacts_dir / 'experiment_results.csv'
+            results_df.to_csv(results_path, index=False)
             
-            # Find best by accuracy
-            best_accuracy = results_df.loc[results_df['accuracy'].idxmax()]
+            print("\n" + "="*70)
+            print("🎉 EXPERIMENTS COMPLETED!")
+            print("="*70)
+            print(f"✅ Successful: {successful}/{len(combinations)}")
+            print(f"❌ Failed: {len(combinations) - successful}/{len(combinations)}")
+            print(f"\n📄 Results saved to: {results_path}")
             
-            print(f"\nBEST ACCURACY COMBINATION:")
-            print(f"• Combo: {best_accuracy['combo_name']}")
-            print(f"• Model: {best_accuracy['model']}")
-            print(f"• Accuracy: {best_accuracy['accuracy']:.4f}")
-            print(f"• F1 Score: {best_accuracy['f1_score']:.4f}")
-            print(f"• Final Rows: {best_accuracy['final_rows']:,}")
-            print(f"• Missing: {best_accuracy['missing_numerical']}/{best_accuracy['missing_categorical']}")
-            print(f"• Outlier: {best_accuracy['outlier_method']} ({best_accuracy['outlier_threshold']})")
-            print(f"• Skewness: {best_accuracy['skewness_method']}")
-            print(f"• Scaling: {best_accuracy['scaling_method']}")
+            # Show top performers
+            print("\n🏆 TOP 5 PERFORMERS BY ACCURACY:")
+            top5 = results_df.nlargest(5, 'accuracy')
+            for idx, row in top5.iterrows():
+                print(f"  {row['combo_name']} ({row['model']})")
+                print(f"    Accuracy: {row['accuracy']:.4f} | F1: {row['f1_score']:.4f} | AUC: {row['auc']:.4f}")
             
-            # Find best by F1 score
-            best_f1 = results_df.loc[results_df['f1_score'].idxmax()]
-            
-            print(f"\nBEST F1 SCORE COMBINATION:")
-            print(f"• Combo: {best_f1['combo_name']}")
-            print(f"• Model: {best_f1['model']}")
-            print(f"• Accuracy: {best_f1['accuracy']:.4f}")
-            print(f"• F1 Score: {best_f1['f1_score']:.4f}")
-            print(f"• Final Rows: {best_f1['final_rows']:,}")
-            print(f"• Missing: {best_f1['missing_numerical']}/{best_f1['missing_categorical']}")
-            print(f"• Outlier: {best_f1['outlier_method']} ({best_f1['outlier_threshold']})")
-            print(f"• Skewness: {best_f1['skewness_method']}")
-            print(f"• Scaling: {best_f1['scaling_method']}")
-            
-            # Save results summary with timestamp
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M")
-            summary_path = f"heart_risk_results_{timestamp}.csv"
-            results_df.to_csv(summary_path, index=False)
-            print(f"\nDetailed results saved to: {summary_path}")
-            
-            # Show top 10 combinations by accuracy
-            print(f"\nTOP 10 COMBINATIONS BY ACCURACY:")
-            top_10 = results_df.nlargest(10, 'accuracy')[[
-                'combo_name', 'model', 'accuracy', 'f1_score', 'final_rows',
-                'missing_numerical', 'outlier_method', 'scaling_method'
-            ]]
-            print(top_10.to_string(index=False))
-            
-            # Show top 10 combinations by F1 score
-            print(f"\nTOP 10 COMBINATIONS BY F1 SCORE:")
-            top_10_f1 = results_df.nlargest(10, 'f1_score')[[
-                'combo_name', 'model', 'accuracy', 'f1_score', 'final_rows',
-                'missing_numerical', 'outlier_method', 'scaling_method'
-            ]]
-            print(top_10_f1.to_string(index=False))
-        
-        print(f"\nView detailed results with: mlflow ui")
-        print(" All 500 combinations tested successfully!")
+            return results_df
+        else:
+            print("\n❌ No successful experiments!")
+            return None
+
 
 if __name__ == "__main__":
-    data_path = DATA_PATH
+    # Update this path to your data
+    DATA_PATH = "F:\\18. MAJOR PROJECT\\Heart-related-content\\heart_risk_complete_dataset.csv" 
     
-    # Validate data path
-    if not os.path.exists(data_path):
-        print(f"Data file not found: {data_path}")
-        print("Please check the file path and try again.")
-    else:
-        experiment = BoxPlotPreprocessingExperiment(data_path)
-        experiment.run_all_experiments()
+    # Run experiments
+    experiment = MLflowExperiment(DATA_PATH)
+    results = experiment.run_all_experiments(max_combinations=200)
+    
+    print("\n Done! Check MLflow UI with: mlflow ui")

@@ -89,6 +89,11 @@ class PredictionResponse(BaseModel):
     risk_status: str
     message: str = "Prediction completed successfully"
 
+# Add this route to your app
+@app.get("/favicon.ico")
+async def favicon():
+    return FileResponse("static/favicon.ico") if os.path.exists("static/favicon.ico") else None
+
 # Root endpoint - Serve HTML or default message
 @app.get("/", response_class=HTMLResponse)
 async def root():
@@ -343,6 +348,6 @@ if __name__ == "__main__":
         "app:app",
         host="0.0.0.0",
         port=5000,
-        reload=False,  # Set to False for production
+        # reload=False,  # Set to False for production
         log_level="info"
     )

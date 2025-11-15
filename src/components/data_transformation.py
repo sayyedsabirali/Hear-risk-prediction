@@ -2,8 +2,8 @@ import sys
 import numpy as np
 import pandas as pd
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import FunctionTransformer
 
 from src.constants import TARGET_COLUMN, SCHEMA_FILE_PATH
 from src.entity.config_entity import DataTransformationConfig
@@ -11,8 +11,12 @@ from src.entity.artifact_entity import DataTransformationArtifact, DataIngestion
 from src.exception import MyException
 from src.logger import logging
 from src.utils.main_utils import save_object, save_numpy_array_data, read_yaml_file
-from src.utils.preprocessing_utils import PreprocessingUtils  # ✅ REUSED CODE
+from src.utils.preprocessing_utils import PreprocessingUtils
 
+# FIX: Define identity function outside the class
+def identity_function(x):
+    """Identity function that returns the same data - can be pickled"""
+    return x
 
 class DataTransformation:
     def __init__(self, data_ingestion_artifact: DataIngestionArtifact,
@@ -36,28 +40,26 @@ class DataTransformation:
     def get_data_transformer_object(self) -> Pipeline:
         logging.info("Entered get_data_transformer_object method of DataTransformation class")
         try:
-            # Initialize transformers
-            numeric_transformer = StandardScaler()
-            min_max_scaler = MinMaxScaler()
-            logging.info("Transformers Initialized: StandardScaler-MinMaxScaler")
+            # FIX: Use predefined identity function instead of lambda
+            identity_transformer = FunctionTransformer(identity_function)
+            
+            logging.info("Using Identity Transformer (No scaling as per best model)")
 
             # Load schema configurations
             num_features = self._schema_config['num_features']
-            mm_columns = self._schema_config['mm_columns']
-            logging.info("Cols loaded from schema.")
+            logging.info("Columns loaded from schema.")
 
-            # Creating preprocessor pipeline
+            # Creating preprocessor pipeline with identity transformer
             preprocessor = ColumnTransformer(
                 transformers=[
-                    ("StandardScaler", numeric_transformer, num_features),
-                    ("MinMaxScaler", min_max_scaler, mm_columns)
+                    ("Identity", identity_transformer, num_features)
                 ],
                 remainder='passthrough'
             )
 
             # Wrapping everything in a single pipeline
             final_pipeline = Pipeline(steps=[("Preprocessor", preprocessor)])
-            logging.info("Final Pipeline Ready!!")
+            logging.info("Identity Pipeline Ready (No Scaling)!!")
             logging.info("Exited get_data_transformer_object method of DataTransformation class")
             return final_pipeline
 
@@ -98,17 +100,18 @@ class DataTransformation:
             logging.info("Applying preprocessing transformations to test data")
             input_feature_test_df = PreprocessingUtils.apply_preprocessing_transformations(input_feature_test_df)
 
-            # Apply sklearn preprocessing
-            logging.info("Starting data transformation with preprocessor")
+            # CHANGED: Get identity transformer (no scaling)
+            logging.info("Getting identity transformer (no scaling as per best model)")
             preprocessor = self.get_data_transformer_object()
-            logging.info("Got the preprocessor object")
+            logging.info("Got the identity transformer object")
 
-            logging.info("Initializing transformation for Training-data")
+            # CHANGED: Just transform without any scaling
+            logging.info("Transforming Training-data (no scaling)")
             input_feature_train_arr = preprocessor.fit_transform(input_feature_train_df)
         
-            logging.info("Initializing transformation for Testing-data")
+            logging.info("Transforming Testing-data (no scaling)")
             input_feature_test_arr = preprocessor.transform(input_feature_test_df)
-            logging.info("Transformation done end to end to train-test df.")
+            logging.info("Transformation done (no scaling applied)")
 
             # Create final arrays
             logging.info("Concatenating features and target")
@@ -122,7 +125,7 @@ class DataTransformation:
             save_numpy_array_data(self.data_transformation_config.transformed_test_file_path, array=test_arr)
             logging.info("Saving transformation object and transformed files.")
 
-            logging.info("Data transformation completed successfully")
+            logging.info("Data transformation completed successfully (No scaling applied)")
             return DataTransformationArtifact(
                 transformed_object_file_path=self.data_transformation_config.transformed_object_file_path,
                 transformed_train_file_path=self.data_transformation_config.transformed_train_file_path,

@@ -4,7 +4,7 @@ from src.entity.config_entity import ModelPusherConfig
 from src.entity.s3_estimator import Proj1Estimator
 from src.exception import MyException
 from src.logger import logging
-from src.utils.preprocessing_utils import PreprocessingUtils  
+from src.utils.preprocessing_utils import PreprocessingUtils  # ✅ PREPROCESSING IMPORT RAKHA
 
 
 class HeartPatientData:
@@ -110,8 +110,12 @@ class HeartRiskClassifier:
                 model_path=self.prediction_pipeline_config.s3_model_key_path,
             )
             
-            # Make prediction
-            result = model.predict(dataframe)
+            # ✅ APPLY PREPROCESSING (but NO feature engineering)
+            logging.info("Applying preprocessing transformations...")
+            dataframe_processed = PreprocessingUtils.apply_preprocessing_transformations(dataframe)
+            
+            # Make prediction on preprocessed data
+            result = model.predict(dataframe_processed)
             
             # Convert prediction to meaningful result
             prediction_label = "Patient has heart risk" if result[0] == 1 else "Patient has no heart risk"

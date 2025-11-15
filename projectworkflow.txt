@@ -184,4 +184,11 @@ Build dashboards to monitor Flask app metrics.
 
 Delete EKS cluster, deployments, services, S3/ECR resources if not needed.
 
-Validate using AWS CLI and console.
+-Delete Deployment : kubectl delete deployment heart-risk-prediction
+-Delete Service : kubectl delete service heart-risk-prediction-service
+-Delete EKS Cluster : eksctl delete cluster --name project-cluster --region us-east-1
+-Verify Cluster Deleted : eksctl get cluster --region us-east-1
+-ECR_REPO Delete : aws ecr delete-repository --repository-name heart-risk-prediction --region us-east-1 --force
+-delete bucket : get the name : aws s3 ls. delete the lab : aws s3 rb s3://your-bucket-name --force
+-Check CloudFormation Cleanup : aws cloudformation list-stacks --region us-east-1
+-Confirm LoadBalancer Termination : aws elb describe-load-balancers --region us-east-1

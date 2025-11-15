@@ -21,26 +21,20 @@ class TargetValueMapping:
 
 class MyModel:
     def __init__(self, preprocessing_object: Pipeline, trained_model_object: object):
-        """
-        Initialize MyModel with preprocessing pipeline and trained model
-        
-        Args:
-            preprocessing_object: Sklearn Pipeline for scaling/transformations
-            trained_model_object: Trained ML model (e.g., LightGBM)
-        """
         self.preprocessing_object = preprocessing_object
         self.trained_model_object = trained_model_object
 
     def predict(self, dataframe: pd.DataFrame) -> DataFrame:
         try:
             logging.info("Starting prediction process with raw data...")
-            logging.info("Step 1: Applying complete feature engineering...")
-            df_processed = PreprocessingUtils.apply_complete_feature_engineering(dataframe)
-            logging.info("Step 2: Applying preprocessing transformations...")
-            df_processed = PreprocessingUtils.apply_preprocessing_transformations(df_processed)
-            logging.info("Step 3: Applying scaling transformations...")
+            logging.info("Step 1: Applying preprocessing transformations .....")
+            df_processed = PreprocessingUtils.apply_preprocessing_transformations(dataframe)
+            
+            logging.info("Step 2: Applying identity transformation (no scaling)...")
             transformed_feature = self.preprocessing_object.transform(df_processed)
-            logging.info("Step 4: Making predictions...")
+            
+            # Step 3: Make predictions
+            logging.info("Step 3: Making predictions...")
             predictions = self.trained_model_object.predict(transformed_feature)
             
             logging.info(f"Prediction completed. Total predictions: {len(predictions)}")

@@ -2,7 +2,7 @@ import sys
 from typing import Tuple
 
 import numpy as np
-import lightgbm as lgb
+import xgboost as xgb  # CHANGED: LightGBM to XGBoost
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, roc_auc_score
 
 from src.exception import MyException
@@ -12,6 +12,7 @@ from src.entity.config_entity import ModelTrainerConfig
 from src.entity.artifact_entity import DataTransformationArtifact, ModelTrainerArtifact, ClassificationMetricArtifact
 from src.entity.estimator import MyModel
 from src.constants import *
+
 class ModelTrainer:
     def __init__(self, data_transformation_artifact: DataTransformationArtifact,
                  model_trainer_config: ModelTrainerConfig):
@@ -20,7 +21,7 @@ class ModelTrainer:
 
     def get_model_object_and_report(self, train: np.array, test: np.array) -> Tuple[object, object]:
         try:
-            logging.info("Training LightGBM Classifier with optimized parameters for Heart Attack Prediction")
+            logging.info("Training XGBoost Classifier with tuned parameters for Heart Attack Prediction")
 
             # Splitting the train and test data into features and target variables
             x_train, y_train, x_test, y_test = train[:, :-1], train[:, -1], test[:, :-1], test[:, -1]
@@ -33,19 +34,21 @@ class ModelTrainer:
             logging.info(f"Target variable - Unique values in y_train: {np.unique(y_train)}")
             logging.info(f"Target variable - Unique values in y_test: {np.unique(y_test)}")
 
-            # Initialize LightGBM Classifier with optimized parameters
-            model = lgb.LGBMClassifier(
-                n_estimators=MODEL_TRAINER_N_ESTIMATORS,
-                max_depth=MODEL_TRAINER_MAX_DEPTH,
-                learning_rate=MODEL_TRAINER_LEARNING_RATE,
-                num_leaves=MODEL_TRAINER_NUM_LEAVES,
-                subsample=MODEL_TRAINER_SUBSAMPLE,
-                colsample_bytree=MODEL_TRAINER_COLSAMPLE_BYTREE,
-                reg_alpha=MODEL_TRAINER_REG_ALPHA,
-                reg_lambda=MODEL_TRAINER_REG_LAMBDA,
-                min_child_samples=MODEL_TRAINER_MIN_CHILD_SAMPLES,
+            # CHANGED: Initialize XGBoost Classifier with tuned parameters from best model
+            model = xgb.XGBClassifier(
+                n_estimators=MODEL_TRAINER_N_ESTIMATORS,  # 400
+                max_depth=MODEL_TRAINER_MAX_DEPTH,        # 10
+                learning_rate=MODEL_TRAINER_LEARNING_RATE, # 0.1
+                subsample=MODEL_TRAINER_SUBSAMPLE,         # 0.8
+                colsample_bytree=MODEL_TRAINER_COLSAMPLE_BYTREE,  # 0.7
+                reg_alpha=MODEL_TRAINER_REG_ALPHA,         # 0.1
+                reg_lambda=MODEL_TRAINER_REG_LAMBDA,       # 0.5
+                gamma=MODEL_TRAINER_GAMMA,                 # 0.5
+                min_child_weight=MODEL_TRAINER_MIN_CHILD_WEIGHT,  # 5
                 random_state=MODEL_TRAINER_RANDOM_STATE,
-                verbose=MODEL_TRAINER_VERBOSE
+                verbosity=1,  # FIXED: Changed from -1 to 1 (0=silent, 1=warning, 2=info, 3=debug)
+                use_label_encoder=False,
+                eval_metric='logloss'
             )
 
             # Fit the model
@@ -97,7 +100,7 @@ class ModelTrainer:
             logging.info(f"Train data shape: {train_arr.shape}, Test data shape: {test_arr.shape}")
             
             # Train model and get metrics
-            logging.info("Training model with advanced medical features...")
+            logging.info("Training XGBoost model with tuned parameters...")
             trained_model, metric_artifact = self.get_model_object_and_report(train=train_arr, test=test_arr)
             logging.info("Model training and evaluation completed.")
             
